@@ -38,13 +38,7 @@ ffmpeg4java is distributed under the terms of BSD 3-Clause License.
 
 ## Notice
 
-ffmpeg4java uses the ffmpeg open source image library. 
-See http:// for details.
-
-    ffmpeg library is statically linked with JNI code and distributed as single binary
-
-ffmpeg is used under the .
-
+TODO
 
 ## Generate JNI code
 
