@@ -1,6 +1,6 @@
 FROM ffmpeg4java:latest
 
-RUN apt-get update && apt-get -y install make mingw-w64 libbz2-dev libz-dev
+RUN apt-get update && apt-get -y install make mingw-w64
 
 #RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 

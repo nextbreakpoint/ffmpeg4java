@@ -5,4 +5,4 @@ JAVA_HOME=/usr/lib/jvm/java-8-oracle
 OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/win32
 
 all: 
-	mkdir -p $(OUTPUT_DIR) && x86_64-w64-mingw32-gcc --verbose -o $(OUTPUT_DIR)/ffmpeg4java.dll -L. -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,--out-implib=libffmpeg4java.dll.a -Wl,-add-stdcall-alias -shared -fPIC -Wall -m$(LIB_TYPE) -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale $(BUILD_DIR)/ffmpeg4java_wrap.c -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lz -lbz2 -lws2_32 
+	mkdir -p $(OUTPUT_DIR) && x86_64-w64-mingw32-gcc --verbose -o $(OUTPUT_DIR)/ffmpeg4java.dll -L. -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,--out-implib=libffmpeg4java.dll.a -Wl,-add-stdcall-alias -shared -fPIC -Wall -m$(LIB_TYPE) -Ilibavformat -Ilibavcodec -Ilibavutil -Ilibavfilter -Ilibavdevice -Ilibswscale -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale $(BUILD_DIR)/ffmpeg4java_wrap.c -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lws2_32 

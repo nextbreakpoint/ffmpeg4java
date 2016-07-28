@@ -15,6 +15,6 @@ cp Makefile.jni.macos ffmpeg/Makefile.jni.macos
 
 cd ffmpeg
 
-#make -f Makefile.lib.macos ffmpeg
+make -f Makefile.lib.macos ffmpeg
 
 make -f Makefile.jni.macos all

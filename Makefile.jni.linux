@@ -5,4 +5,4 @@ JAVA_HOME=/usr/lib/jvm/java-8-oracle
 OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/linux
 
 all: 	
-	mkdir -p $(OUTPUT_DIR) && gcc --verbose -o $(OUTPUT_DIR)/libffmpeg4java.so -L. -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,-soname,libffmpeg4java.so -shared -fPIC -Wall -m$(LIB_TYPE) -lstdc++ -lm -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lz -lbz2 $(BUILD_DIR)/ffmpeg4java_wrap.c
+	mkdir -p $(OUTPUT_DIR) && gcc --verbose -o $(OUTPUT_DIR)/libffmpeg4java.so -L. -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,-soname,libffmpeg4java.so -shared -fPIC -Wall -m$(LIB_TYPE) -lstdc++ -lm -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lz $(BUILD_DIR)/ffmpeg4java_wrap.c
