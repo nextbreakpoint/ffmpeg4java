@@ -1,0 +1,8 @@
+BUILD_DIR?=Build
+LIB_TYPE=64
+LIB_ARCH=x86_$(LIB_TYPE)
+JAVA_HOME=/usr/lib/jvm/java-8-oracle
+OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/linux
+
+all: 	
+	mkdir -p $(OUTPUT_DIR) && g++ --verbose -o $(OUTPUT_DIR)/libffmpeg4java.so -L. -ISource -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,-soname,libffmpeg4java.so -shared -fPIC -Wall -m$(LIB_TYPE) -lstdc++ -lm -lffmpeg $(BUILD_DIR)/ffmpeg4java_wrap.cxx 

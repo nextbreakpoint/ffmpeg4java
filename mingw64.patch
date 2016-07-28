@@ -1,0 +1,26 @@
+diff -u /usr/share/mingw-w64/include/unknwnbase.h /usr/share/mingw-w64/include/unknwnbase.h
+--- /usr/share/mingw-w64/include/unknwnbase.h	2016-07-19 22:08:30.411061114 +0000
++++ /usr/share/mingw-w64/include/unknwnbase.h	2016-07-19 22:34:41.108053657 +0000
+@@ -71,7 +71,7 @@
+ 
+     template<class Q>
+     HRESULT STDMETHODCALLTYPE QueryInterface(Q **pp) {
+-      return QueryInterface(__uuidof(Q), (void **)pp);
++      return QueryInterface(__uuidof(pp), (void **)pp);
+     }
+     END_INTERFACE
+   };
+
+
+diff -u /usr/share/mingw-w64/include/servprov.h /usr/share/mingw-w64/include/servprov.h
+--- /usr/share/mingw-w64/include/servprov.h	2016-07-19 22:08:47.510648873 +0000
++++ /usr/share/mingw-w64/include/servprov.h	2016-07-19 22:34:26.971329424 +0000
+@@ -63,7 +63,7 @@
+ 
+ template <class Q>
+ HRESULT STDMETHODCALLTYPE QueryService(REFGUID guidService, Q **pp) {
+-  return QueryService(guidService, __uuidof(Q), (void **)pp);
++  return QueryService(guidService, __uuidof(pp), (void **)pp);
+ }
+ };
+ }

@@ -1,0 +1,17 @@
+FROM ffmpeg4java:latest
+
+RUN apt-get update && apt-get -y install cvs make mingw-w64
+
+RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+COPY Makefile.lib.mingw64 ffmpeg/Makefile.lib.mingw64
+COPY Makefile.jni.mingw64 ffmpeg/Makefile.jni.mingw64
+
+COPY mingw64.patch ffmpeg/mingw64.patch
+RUN patch -p0 < ffmpeg/mingw64.patch
+
+COPY build-mingw64.sh build-mingw64.sh
+
+RUN chmod 700 build-mingw64.sh
+
+CMD ["sh", "-c", "/build-mingw64.sh"]

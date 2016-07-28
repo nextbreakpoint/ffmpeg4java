@@ -1,0 +1,14 @@
+FROM ffmpeg4java:latest
+
+RUN apt-get update && apt-get -y install cvs make gcc g++
+
+RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+COPY Makefile.lib.linux ffmpeg/Makefile.lib.linux
+COPY Makefile.jni.linux ffmpeg/Makefile.jni.linux
+
+COPY build-linux.sh build-linux.sh
+
+RUN chmod 700 build-linux.sh
+
+CMD ["sh", "-c", "/build-linux.sh"]

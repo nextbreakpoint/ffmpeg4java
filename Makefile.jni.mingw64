@@ -1,0 +1,8 @@
+BUILD_DIR?=Build
+LIB_TYPE=64
+LIB_ARCH=x86_$(LIB_TYPE)
+JAVA_HOME=/usr/lib/jvm/java-8-oracle
+OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/win32
+
+all: 
+	mkdir -p $(OUTPUT_DIR) && x86_64-w64-mingw32-g++ --verbose -o $(OUTPUT_DIR)/ffmpeg4java.dll -L. -ISource -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -Wl,--out-implib=libffmpeg4java.dll.a -Wl,-add-stdcall-alias -shared -fPIC -Wall -m$(LIB_TYPE) $(BUILD_DIR)/ffmpeg4java_wrap.cxx -lffmpeg -lm -lws2_32 

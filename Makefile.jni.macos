@@ -1,0 +1,9 @@
+BUILD_DIR?=Build
+LIB_TYPE=64
+LIB_ARCH=x86_$(LIB_TYPE)
+JAVA_HOME=`/usr/libexec/java_home`
+OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/macos
+
+all:
+	mkdir -p $(OUTPUT_DIR) && g++ --verbose -o $(OUTPUT_DIR)/libffmpeg4java.jnilib -ISource -L. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin -shared -fPIC -Wall -m$(LIB_TYPE) -lffmpeg -lm $(BUILD_DIR)/ffmpeg4java_wrap.cxx
+	
