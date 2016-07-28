@@ -5,5 +5,5 @@ JAVA_HOME=`/usr/libexec/java_home`
 OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/macos
 
 all:
-	mkdir -p $(OUTPUT_DIR) && g++ --verbose -o $(OUTPUT_DIR)/libffmpeg4java.jnilib -ISource -L. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin -shared -fPIC -Wall -m$(LIB_TYPE) -lffmpeg -lm $(BUILD_DIR)/ffmpeg4java_wrap.cxx
+	mkdir -p $(OUTPUT_DIR) && gcc --verbose -o $(OUTPUT_DIR)/libffmpeg4java.jnilib -std=gnu99 -I. -L. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin -shared -fPIC -Wall -m$(LIB_TYPE) -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale $(BUILD_DIR)/ffmpeg4java_wrap.c -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lz -lbz2
 	

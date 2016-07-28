@@ -1,5 +1,8 @@
 DISTDIR ?= Dist
+LIB_TYPE=64
+LIB_ARCH=x86_$(LIB_TYPE)
 
-clean:
+ffmpeg:
+	./configure --extra-cflags=-m$(LIB_TYPE) --extra-ldflags=-m$(LIB_TYPE) --arch=$(LIB_ARCH) --disable-mmx --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffserver --disable-ffprobe --enable-pthreads --enable-static --disable-shared --enable-pic && make
 	
 
