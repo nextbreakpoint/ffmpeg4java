@@ -2,14 +2,12 @@ FROM ffmpeg4java:latest
 
 RUN apt-get update && apt-get -y install make gcc g++
 
-#RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
 COPY Makefile.lib.linux ffmpeg/Makefile.lib.linux
 COPY Makefile.jni.linux ffmpeg/Makefile.jni.linux
 
 COPY build-linux.sh build-linux.sh
-
-COPY ffmpeg /ffmpeg
 
 RUN chmod 700 build-linux.sh
 
