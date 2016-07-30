@@ -5,5 +5,5 @@ JAVA_HOME=`/usr/libexec/java_home`
 OUTPUT_DIR=$(BUILD_DIR)/com.nextbreakpoint.ffmpeg4java/src/main/resources/macos
 
 all:
-	mkdir -p $(OUTPUT_DIR) && gcc --verbose -o $(OUTPUT_DIR)/libffmpeg4java.jnilib -std=gnu99 -I. -L. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin -shared -fPIC -Wall -m$(LIB_TYPE) -Llibavformat -Llibavcodec -Llibavutil -Llibavfilter -Llibavdevice -Llibswscale $(BUILD_DIR)/ffmpeg4java_wrap.c -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lm -lz -lbz2
+	mkdir -p $(OUTPUT_DIR) && gcc --verbose -o $(OUTPUT_DIR)/libffmpeg4java.jnilib -std=gnu99 -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin -shared -fPIC -Wall -m$(LIB_TYPE) -Llibavutil -Llibavformat -Llibavfilter -Llibavcodec -Llibavdevice -Llibswscale -Llibswresample $(BUILD_DIR)/ffmpeg4java_wrap.c -lavutil -lavformat -lavfilter -lavcodec -lavdevice -lswscale -lswresample -lm -lz -lbz2 -liconv -framework VideoToolbox -framework AudioToolbox -framework AVFoundation -framework Foundation -framework CoreImage -framework CoreGraphics -framework CoreMedia -framework QuartzCore -framework OpenGL -framework OpenAL -framework VideoDecodeAcceleration -framework QTKit -framework AppKit -framework Security
 	
