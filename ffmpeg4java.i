@@ -24,6 +24,8 @@
 %{
 #include "libavutil/avutil.h"
 #include "libavutil/time.h"
+#include "libavutil/dict.h"
+#include "libavutil/imgutils.h"
 #include "libavcodec/avcodec.h"
 #include "libavformat/url.h"
 #include "libavformat/avformat.h"
@@ -31,14 +33,19 @@
 #include "libavdevice/avdevice.h"
 #include "libpostproc/postprocess.h"
 #include "libswscale/swscale.h"
+#include "libswresample/swresample.h"
 
+struct AVFrame ** swig_create_frame_p_p(AVFrame * p);
+struct AVDictionary ** swig_create_dictionary_p_p();
 struct AVFormatContext ** swig_create_format_context_p_p();
 struct URLContext ** swig_create_url_context_p_p();
+struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p);
 struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p);
 struct URLContext * swig_get_url_context(struct URLContext ** p);
 struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
 int * swig_create_int_p();
-int swig_get_int(int * p);
+int swig_get_int(int * p, int index);
+void swig_set_int(int * p, int index, int value);
 %}
 
 %javaconst(1);
@@ -80,12 +87,6 @@ int swig_get_int(int * p);
 %extend AVFormatContext {
    AVIOContext ** get_aviocontext_p_p() {
     return &self->pb;
-   } 
-}
-
-%extend AVFrame {
-   struct AVPicture * asPicture() {
-    return (struct AVPicture *) self;
    } 
 }
 
@@ -141,16 +142,51 @@ int swig_get_int(int * p);
   }
 %} 
 
+%typemap(javacode) AVAppToDevMessageType %{
+    public static final int MKBETAG(char a, char b, char c, char d) {
+      int na = Character.getNumericValue(a);
+      int nb = Character.getNumericValue(b);
+      int nc = Character.getNumericValue(c);
+      int nd = Character.getNumericValue(d);
+      return ((nd) | ((nc) << 8) | ((nb) << 16) | ((na) << 24));
+    }
+%} 
+
+%typemap(javacode) AVDevToAppMessageType %{
+    public static final int MKBETAG(char a, char b, char c, char d) {
+      int na = Character.getNumericValue(a);
+      int nb = Character.getNumericValue(b);
+      int nc = Character.getNumericValue(c);
+      int nd = Character.getNumericValue(d);
+      return ((nd) | ((nc) << 8) | ((nb) << 16) | ((na) << 24));
+    }
+%} 
+
+
 %{
 
+struct AVFrame ** swig_create_frame_p_p(AVFrame * p) {
+   AVFrame ** d = (struct AVFrame **) av_mallocz(sizeof(struct AVFrame **));
+   *d = p;
+   return d;
+}
+
+struct AVDictionary ** swig_create_dictionary_p_p() {
+  return (struct AVDictionary **) av_mallocz(sizeof(struct AVDictionary **));
+}
+
 struct AVFormatContext ** swig_create_format_context_p_p() {
-  return (struct AVFormatContext **) av_malloc(sizeof(struct AVFormatContext **));
+  return (struct AVFormatContext **) av_mallocz(sizeof(struct AVFormatContext **));
 }
 
 struct URLContext ** swig_create_url_context_p_p() {
-	return (struct URLContext **) av_malloc(sizeof(struct URLContext **));
+	return (struct URLContext **) av_mallocz(sizeof(struct URLContext **));
 }	
 
+struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p) {
+  return *p;
+}
+  
 struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p) {
   return *p;
 }
@@ -167,11 +203,15 @@ int * swig_create_int_p() {
   return (int *) av_malloc(sizeof(int *));
 }
 
-int swig_get_int(int * p) {
-  return *p;
+int swig_get_int(int * p, int index) {
+  return p[index];
 }
 
-SWIGEXPORT void JNICALL Java_net_sf_ffmpeg4java_FFmpeg4JavaJNI_swig_1get_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
+void swig_set_int(int * p, int index, int value) {
+  p[index] = value;
+}
+
+SWIGEXPORT void JNICALL Java_com_nextbreakpoint_ffmpeg4java_FFmpeg4JavaJNI_swig_1get_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
   jbyte buf[1024];
   uint8_t *data = (uint8_t *) jarg1;
   jint offset = 0;
@@ -195,7 +235,7 @@ SWIGEXPORT void JNICALL Java_net_sf_ffmpeg4java_FFmpeg4JavaJNI_swig_1get_1bytes(
   }
 }
 
-SWIGEXPORT void JNICALL Java_net_sf_ffmpeg4java_FFmpeg4JavaJNI_swig_1set_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
+SWIGEXPORT void JNICALL Java_com_nextbreakpoint_ffmpeg4java_FFmpeg4JavaJNI_swig_1set_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
   jbyte buf[1024];
   uint8_t *data = (uint8_t *) jarg1;
   jint offset = 0;
@@ -837,8 +877,138 @@ static inline char *av_make_error_string(char *errbuf, size_t errbuf_size, int e
  * @}
  */
 
+/* libavutil/dict.h */
+
+#define AV_DICT_MATCH_CASE      1   /**< Only get an entry with exact-case key match. Only relevant in av_dict_get(). */
+#define AV_DICT_IGNORE_SUFFIX   2   /**< Return first entry in a dictionary whose first part corresponds to the search key,
+                                         ignoring the suffix of the found key string. Only relevant in av_dict_get(). */
+#define AV_DICT_DONT_STRDUP_KEY 4   /**< Take ownership of a key that's been
+                                         allocated with av_malloc() or another memory allocation function. */
+#define AV_DICT_DONT_STRDUP_VAL 8   /**< Take ownership of a value that's been
+                                         allocated with av_malloc() or another memory allocation function. */
+#define AV_DICT_DONT_OVERWRITE 16   ///< Don't overwrite existing entries.
+#define AV_DICT_APPEND         32   /**< If the entry already exists, append to it.  Note that no
+                                      delimiter is added, the strings are simply concatenated. */
+#define AV_DICT_MULTIKEY       64   /**< Allow to store several equal keys in the dictionary */
+
+typedef struct AVDictionaryEntry {
+    char *key;
+    char *value;
+} AVDictionaryEntry;
+
+typedef struct AVDictionary {} AVDictionary;
+
+/**
+ * Get a dictionary entry with matching key.
+ *
+ * The returned entry key or value must not be changed, or it will
+ * cause undefined behavior.
+ *
+ * To iterate through all the dictionary entries, you can set the matching key
+ * to the null string "" and set the AV_DICT_IGNORE_SUFFIX flag.
+ *
+ * @param prev Set to the previous matching element to find the next.
+ *             If set to NULL the first matching element is returned.
+ * @param key matching key
+ * @param flags a collection of AV_DICT_* flags controlling how the entry is retrieved
+ * @return found entry or NULL in case no matching entry was found in the dictionary
+ */
+AVDictionaryEntry *av_dict_get(const AVDictionary *m, const char *key,
+                               const AVDictionaryEntry *prev, int flags);
+
+/**
+ * Get number of entries in dictionary.
+ *
+ * @param m dictionary
+ * @return  number of entries in dictionary
+ */
+int av_dict_count(const AVDictionary *m);
+
+/**
+ * Set the given entry in *pm, overwriting an existing entry.
+ *
+ * Note: If AV_DICT_DONT_STRDUP_KEY or AV_DICT_DONT_STRDUP_VAL is set,
+ * these arguments will be freed on error.
+ *
+ * Warning: Adding a new entry to a dictionary invalidates all existing entries
+ * previously returned with av_dict_get.
+ *
+ * @param pm pointer to a pointer to a dictionary struct. If *pm is NULL
+ * a dictionary struct is allocated and put in *pm.
+ * @param key entry key to add to *pm (will either be av_strduped or added as a new key depending on flags)
+ * @param value entry value to add to *pm (will be av_strduped or added as a new key depending on flags).
+ *        Passing a NULL value will cause an existing entry to be deleted.
+ * @return >= 0 on success otherwise an error code <0
+ */
+int av_dict_set(AVDictionary **pm, const char *key, const char *value, int flags);
+
+/**
+ * Convenience wrapper for av_dict_set that converts the value to a string
+ * and stores it.
+ *
+ * Note: If AV_DICT_DONT_STRDUP_KEY is set, key will be freed on error.
+ */
+int av_dict_set_int(AVDictionary **pm, const char *key, int64_t value, int flags);
+
+/**
+ * Parse the key/value pairs list and add the parsed entries to a dictionary.
+ *
+ * In case of failure, all the successfully set entries are stored in
+ * *pm. You may need to manually free the created dictionary.
+ *
+ * @param key_val_sep  a 0-terminated list of characters used to separate
+ *                     key from value
+ * @param pairs_sep    a 0-terminated list of characters used to separate
+ *                     two pairs from each other
+ * @param flags        flags to use when adding to dictionary.
+ *                     AV_DICT_DONT_STRDUP_KEY and AV_DICT_DONT_STRDUP_VAL
+ *                     are ignored since the key/value tokens will always
+ *                     be duplicated.
+ * @return             0 on success, negative AVERROR code on failure
+ */
+int av_dict_parse_string(AVDictionary **pm, const char *str,
+                         const char *key_val_sep, const char *pairs_sep,
+                         int flags);
+
+/**
+ * Copy entries from one AVDictionary struct into another.
+ * @param dst pointer to a pointer to a AVDictionary struct. If *dst is NULL,
+ *            this function will allocate a struct for you and put it in *dst
+ * @param src pointer to source AVDictionary struct
+ * @param flags flags to use when setting entries in *dst
+ * @note metadata is read using the AV_DICT_IGNORE_SUFFIX flag
+ * @return 0 on success, negative AVERROR code on failure. If dst was allocated
+ *           by this function, callers should free the associated memory.
+ */
+int av_dict_copy(AVDictionary **dst, const AVDictionary *src, int flags);
+
+/**
+ * Free all the memory allocated for an AVDictionary struct
+ * and all keys and values.
+ */
+void av_dict_free(AVDictionary **m);
+
+/**
+ * Get dictionary entries as a string.
+ *
+ * Create a string containing dictionary's entries.
+ * Such string may be passed back to av_dict_parse_string().
+ * @note String is escaped with backslashes ('\').
+ *
+ * @param[in]  m             dictionary
+ * @param[out] buffer        Pointer to buffer that will be allocated with string containg entries.
+ *                           Buffer must be freed by the caller when is no longer needed.
+ * @param[in]  key_val_sep   character used to separate key from value
+ * @param[in]  pairs_sep     character used to separate two pairs from each other
+ * @return                   >= 0 on success, negative on error
+ * @warning Separators cannot be neither '\\' nor '\0'. They also cannot be the same.
+ */
+int av_dict_get_string(const AVDictionary *m, char **buffer,
+                       const char key_val_sep, const char pairs_sep);
+
 
 /* libavutil/samplefmt.h */
+
 
 /**
  * Audio sample formats
@@ -1519,6 +1689,889 @@ enum AVChromaLocation {
     AVCHROMA_LOC_BOTTOM      = 6,
     AVCHROMA_LOC_NB,              ///< Not part of ABI
 };
+
+
+/* libavutil/frame.h */
+
+/**
+ * @defgroup lavu_frame AVFrame
+ * @ingroup lavu_data
+ *
+ * @{
+ * AVFrame is an abstraction for reference-counted raw multimedia data.
+ */
+
+enum AVFrameSideDataType {
+    /**
+     * The data is the AVPanScan struct defined in libavcodec.
+     */
+    AV_FRAME_DATA_PANSCAN,
+    /**
+     * ATSC A53 Part 4 Closed Captions.
+     * A53 CC bitstream is stored as uint8_t in AVFrameSideData.data.
+     * The number of bytes of CC data is AVFrameSideData.size.
+     */
+    AV_FRAME_DATA_A53_CC,
+    /**
+     * Stereoscopic 3d metadata.
+     * The data is the AVStereo3D struct defined in libavutil/stereo3d.h.
+     */
+    AV_FRAME_DATA_STEREO3D,
+    /**
+     * The data is the AVMatrixEncoding enum defined in libavutil/channel_layout.h.
+     */
+    AV_FRAME_DATA_MATRIXENCODING,
+    /**
+     * Metadata relevant to a downmix procedure.
+     * The data is the AVDownmixInfo struct defined in libavutil/downmix_info.h.
+     */
+    AV_FRAME_DATA_DOWNMIX_INFO,
+    /**
+     * ReplayGain information in the form of the AVReplayGain struct.
+     */
+    AV_FRAME_DATA_REPLAYGAIN,
+    /**
+     * This side data contains a 3x3 transformation matrix describing an affine
+     * transformation that needs to be applied to the frame for correct
+     * presentation.
+     *
+     * See libavutil/display.h for a detailed description of the data.
+     */
+    AV_FRAME_DATA_DISPLAYMATRIX,
+    /**
+     * Active Format Description data consisting of a single byte as specified
+     * in ETSI TS 101 154 using AVActiveFormatDescription enum.
+     */
+    AV_FRAME_DATA_AFD,
+    /**
+     * Motion vectors exported by some codecs (on demand through the export_mvs
+     * flag set in the libavcodec AVCodecContext flags2 option).
+     * The data is the AVMotionVector struct defined in
+     * libavutil/motion_vector.h.
+     */
+    AV_FRAME_DATA_MOTION_VECTORS,
+    /**
+     * Recommmends skipping the specified number of samples. This is exported
+     * only if the "skip_manual" AVOption is set in libavcodec.
+     * This has the same format as AV_PKT_DATA_SKIP_SAMPLES.
+     * @code
+     * u32le number of samples to skip from start of this packet
+     * u32le number of samples to skip from end of this packet
+     * u8    reason for start skip
+     * u8    reason for end   skip (0=padding silence, 1=convergence)
+     * @endcode
+     */
+    AV_FRAME_DATA_SKIP_SAMPLES,
+    /**
+     * This side data must be associated with an audio frame and corresponds to
+     * enum AVAudioServiceType defined in avcodec.h.
+     */
+    AV_FRAME_DATA_AUDIO_SERVICE_TYPE,
+    /**
+     * Mastering display metadata associated with a video frame. The payload is
+     * an AVMasteringDisplayMetadata type and contains information about the
+     * mastering display color volume.
+     */
+    AV_FRAME_DATA_MASTERING_DISPLAY_METADATA,
+    /**
+     * The GOP timecode in 25 bit timecode format. Data format is 64-bit integer.
+     * This is set on the first frame of a GOP that has a temporal reference of 0.
+     */
+    AV_FRAME_DATA_GOP_TIMECODE
+};
+
+enum AVActiveFormatDescription {
+    AV_AFD_SAME         = 8,
+    AV_AFD_4_3          = 9,
+    AV_AFD_16_9         = 10,
+    AV_AFD_14_9         = 11,
+    AV_AFD_4_3_SP_14_9  = 13,
+    AV_AFD_16_9_SP_14_9 = 14,
+    AV_AFD_SP_4_3       = 15,
+};
+
+
+/**
+ * Structure to hold side data for an AVFrame.
+ *
+ * sizeof(AVFrameSideData) is not a part of the public ABI, so new fields may be added
+ * to the end with a minor bump.
+ */
+typedef struct AVFrameSideData {
+    enum AVFrameSideDataType type;
+    uint8_t *data;
+    int      size;
+    AVDictionary *metadata;
+    AVBufferRef *buf;
+} AVFrameSideData;
+
+/**
+ * This structure describes decoded (raw) audio or video data.
+ *
+ * AVFrame must be allocated using av_frame_alloc(). Note that this only
+ * allocates the AVFrame itself, the buffers for the data must be managed
+ * through other means (see below).
+ * AVFrame must be freed with av_frame_free().
+ *
+ * AVFrame is typically allocated once and then reused multiple times to hold
+ * different data (e.g. a single AVFrame to hold frames received from a
+ * decoder). In such a case, av_frame_unref() will free any references held by
+ * the frame and reset it to its original clean state before it
+ * is reused again.
+ *
+ * The data described by an AVFrame is usually reference counted through the
+ * AVBuffer API. The underlying buffer references are stored in AVFrame.buf /
+ * AVFrame.extended_buf. An AVFrame is considered to be reference counted if at
+ * least one reference is set, i.e. if AVFrame.buf[0] != NULL. In such a case,
+ * every single data plane must be contained in one of the buffers in
+ * AVFrame.buf or AVFrame.extended_buf.
+ * There may be a single buffer for all the data, or one separate buffer for
+ * each plane, or anything in between.
+ *
+ * sizeof(AVFrame) is not a part of the public ABI, so new fields may be added
+ * to the end with a minor bump.
+ * Similarly fields that are marked as to be only accessed by
+ * av_opt_ptr() can be reordered. This allows 2 forks to add fields
+ * without breaking compatibility with each other.
+ *
+ * Fields can be accessed through AVOptions, the name string used, matches the
+ * C structure field name for fields accessable through AVOptions. The AVClass
+ * for AVFrame can be obtained from avcodec_get_frame_class()
+ */
+typedef struct AVFrame {
+#define AV_NUM_DATA_POINTERS 8
+    /**
+     * pointer to the picture/channel planes.
+     * This might be different from the first allocated byte
+     *
+     * Some decoders access areas outside 0,0 - width,height, please
+     * see avcodec_align_dimensions2(). Some filters and swscale can read
+     * up to 16 bytes beyond the planes, if these filters are to be used,
+     * then 16 extra bytes must be allocated.
+     *
+     * NOTE: Except for hwaccel formats, pointers not needed by the format
+     * MUST be set to NULL.
+     */
+    uint8_t *data[AV_NUM_DATA_POINTERS];
+
+    /**
+     * For video, size in bytes of each picture line.
+     * For audio, size in bytes of each plane.
+     *
+     * For audio, only linesize[0] may be set. For planar audio, each channel
+     * plane must be the same size.
+     *
+     * For video the linesizes should be multiples of the CPUs alignment
+     * preference, this is 16 or 32 for modern desktop CPUs.
+     * Some code requires such alignment other code can be slower without
+     * correct alignment, for yet other it makes no difference.
+     *
+     * @note The linesize may be larger than the size of usable data -- there
+     * may be extra padding present for performance reasons.
+     */
+    int linesize[AV_NUM_DATA_POINTERS];
+
+    /**
+     * pointers to the data planes/channels.
+     *
+     * For video, this should simply point to data[].
+     *
+     * For planar audio, each channel has a separate data pointer, and
+     * linesize[0] contains the size of each channel buffer.
+     * For packed audio, there is just one data pointer, and linesize[0]
+     * contains the total size of the buffer for all channels.
+     *
+     * Note: Both data and extended_data should always be set in a valid frame,
+     * but for planar audio with more channels that can fit in data,
+     * extended_data must be used in order to access all channels.
+     */
+    uint8_t **extended_data;
+
+    /**
+     * width and height of the video frame
+     */
+    int width, height;
+
+    /**
+     * number of audio samples (per channel) described by this frame
+     */
+    int nb_samples;
+
+    /**
+     * format of the frame, -1 if unknown or unset
+     * Values correspond to enum AVPixelFormat for video frames,
+     * enum AVSampleFormat for audio)
+     */
+    int format;
+
+    /**
+     * 1 -> keyframe, 0-> not
+     */
+    int key_frame;
+
+    /**
+     * Picture type of the frame.
+     */
+    enum AVPictureType pict_type;
+
+    /**
+     * Sample aspect ratio for the video frame, 0/1 if unknown/unspecified.
+     */
+    AVRational sample_aspect_ratio;
+
+    /**
+     * Presentation timestamp in time_base units (time when frame should be shown to user).
+     */
+    int64_t pts;
+
+    /**
+     * PTS copied from the AVPacket that was decoded to produce this frame.
+     */
+    int64_t pkt_pts;
+
+    /**
+     * DTS copied from the AVPacket that triggered returning this frame. (if frame threading isn't used)
+     * This is also the Presentation time of this AVFrame calculated from
+     * only AVPacket.dts values without pts values.
+     */
+    int64_t pkt_dts;
+
+    /**
+     * picture number in bitstream order
+     */
+    int coded_picture_number;
+    /**
+     * picture number in display order
+     */
+    int display_picture_number;
+
+    /**
+     * quality (between 1 (good) and FF_LAMBDA_MAX (bad))
+     */
+    int quality;
+
+    /**
+     * for some private data of the user
+     */
+    void *opaque;
+
+#if FF_API_ERROR_FRAME
+    /**
+     * @deprecated unused
+     */
+    attribute_deprecated
+    uint64_t error[AV_NUM_DATA_POINTERS];
+#endif
+
+    /**
+     * When decoding, this signals how much the picture must be delayed.
+     * extra_delay = repeat_pict / (2*fps)
+     */
+    int repeat_pict;
+
+    /**
+     * The content of the picture is interlaced.
+     */
+    int interlaced_frame;
+
+    /**
+     * If the content is interlaced, is top field displayed first.
+     */
+    int top_field_first;
+
+    /**
+     * Tell user application that palette has changed from previous frame.
+     */
+    int palette_has_changed;
+
+    /**
+     * reordered opaque 64 bits (generally an integer or a double precision float
+     * PTS but can be anything).
+     * The user sets AVCodecContext.reordered_opaque to represent the input at
+     * that time,
+     * the decoder reorders values as needed and sets AVFrame.reordered_opaque
+     * to exactly one of the values provided by the user through AVCodecContext.reordered_opaque
+     * @deprecated in favor of pkt_pts
+     */
+    int64_t reordered_opaque;
+
+    /**
+     * Sample rate of the audio data.
+     */
+    int sample_rate;
+
+    /**
+     * Channel layout of the audio data.
+     */
+    uint64_t channel_layout;
+
+    /**
+     * AVBuffer references backing the data for this frame. If all elements of
+     * this array are NULL, then this frame is not reference counted. This array
+     * must be filled contiguously -- if buf[i] is non-NULL then buf[j] must
+     * also be non-NULL for all j < i.
+     *
+     * There may be at most one AVBuffer per data plane, so for video this array
+     * always contains all the references. For planar audio with more than
+     * AV_NUM_DATA_POINTERS channels, there may be more buffers than can fit in
+     * this array. Then the extra AVBufferRef pointers are stored in the
+     * extended_buf array.
+     */
+    AVBufferRef *buf[AV_NUM_DATA_POINTERS];
+
+    /**
+     * For planar audio which requires more than AV_NUM_DATA_POINTERS
+     * AVBufferRef pointers, this array will hold all the references which
+     * cannot fit into AVFrame.buf.
+     *
+     * Note that this is different from AVFrame.extended_data, which always
+     * contains all the pointers. This array only contains the extra pointers,
+     * which cannot fit into AVFrame.buf.
+     *
+     * This array is always allocated using av_malloc() by whoever constructs
+     * the frame. It is freed in av_frame_unref().
+     */
+    AVBufferRef **extended_buf;
+    /**
+     * Number of elements in extended_buf.
+     */
+    int        nb_extended_buf;
+
+    AVFrameSideData **side_data;
+    int            nb_side_data;
+
+/**
+ * @defgroup lavu_frame_flags AV_FRAME_FLAGS
+ * Flags describing additional frame properties.
+ *
+ * @{
+ */
+
+/**
+ * The frame data may be corrupted, e.g. due to decoding errors.
+ */
+#define AV_FRAME_FLAG_CORRUPT       (1 << 0)
+/**
+ * @}
+ */
+
+    /**
+     * Frame flags, a combination of @ref lavu_frame_flags
+     */
+    int flags;
+
+    /**
+     * MPEG vs JPEG YUV range.
+     * It must be accessed using av_frame_get_color_range() and
+     * av_frame_set_color_range().
+     * - encoding: Set by user
+     * - decoding: Set by libavcodec
+     */
+    enum AVColorRange color_range;
+
+    enum AVColorPrimaries color_primaries;
+
+    enum AVColorTransferCharacteristic color_trc;
+
+    /**
+     * YUV colorspace type.
+     * It must be accessed using av_frame_get_colorspace() and
+     * av_frame_set_colorspace().
+     * - encoding: Set by user
+     * - decoding: Set by libavcodec
+     */
+    enum AVColorSpace colorspace;
+
+    enum AVChromaLocation chroma_location;
+
+    /**
+     * frame timestamp estimated using various heuristics, in stream time base
+     * Code outside libavutil should access this field using:
+     * av_frame_get_best_effort_timestamp(frame)
+     * - encoding: unused
+     * - decoding: set by libavcodec, read by user.
+     */
+    int64_t best_effort_timestamp;
+
+    /**
+     * reordered pos from the last AVPacket that has been input into the decoder
+     * Code outside libavutil should access this field using:
+     * av_frame_get_pkt_pos(frame)
+     * - encoding: unused
+     * - decoding: Read by user.
+     */
+    int64_t pkt_pos;
+
+    /**
+     * duration of the corresponding packet, expressed in
+     * AVStream->time_base units, 0 if unknown.
+     * Code outside libavutil should access this field using:
+     * av_frame_get_pkt_duration(frame)
+     * - encoding: unused
+     * - decoding: Read by user.
+     */
+    int64_t pkt_duration;
+
+    /**
+     * metadata.
+     * Code outside libavutil should access this field using:
+     * av_frame_get_metadata(frame)
+     * - encoding: Set by user.
+     * - decoding: Set by libavcodec.
+     */
+    AVDictionary *metadata;
+
+    /**
+     * decode error flags of the frame, set to a combination of
+     * FF_DECODE_ERROR_xxx flags if the decoder produced a frame, but there
+     * were errors during the decoding.
+     * Code outside libavutil should access this field using:
+     * av_frame_get_decode_error_flags(frame)
+     * - encoding: unused
+     * - decoding: set by libavcodec, read by user.
+     */
+    int decode_error_flags;
+#define FF_DECODE_ERROR_INVALID_BITSTREAM   1
+#define FF_DECODE_ERROR_MISSING_REFERENCE   2
+
+    /**
+     * number of audio channels, only used for audio.
+     * Code outside libavutil should access this field using:
+     * av_frame_get_channels(frame)
+     * - encoding: unused
+     * - decoding: Read by user.
+     */
+    int channels;
+
+    /**
+     * size of the corresponding packet containing the compressed
+     * frame. It must be accessed using av_frame_get_pkt_size() and
+     * av_frame_set_pkt_size().
+     * It is set to a negative value if unknown.
+     * - encoding: unused
+     * - decoding: set by libavcodec, read by user.
+     */
+    int pkt_size;
+
+#if FF_API_FRAME_QP
+    /**
+     * QP table
+     * Not to be accessed directly from outside libavutil
+     */
+    attribute_deprecated
+    int8_t *qscale_table;
+    /**
+     * QP store stride
+     * Not to be accessed directly from outside libavutil
+     */
+    attribute_deprecated
+    int qstride;
+
+    attribute_deprecated
+    int qscale_type;
+
+    /**
+     * Not to be accessed directly from outside libavutil
+     */
+    AVBufferRef *qp_table_buf;
+#endif
+    /**
+     * For hwaccel-format frames, this should be a reference to the
+     * AVHWFramesContext describing the frame.
+     */
+    AVBufferRef *hw_frames_ctx;
+} AVFrame;
+
+/**
+ * Accessors for some AVFrame fields.
+ * The position of these field in the structure is not part of the ABI,
+ * they should not be accessed directly outside libavutil.
+ */
+int64_t av_frame_get_best_effort_timestamp(const AVFrame *frame);
+void    av_frame_set_best_effort_timestamp(AVFrame *frame, int64_t val);
+int64_t av_frame_get_pkt_duration         (const AVFrame *frame);
+void    av_frame_set_pkt_duration         (AVFrame *frame, int64_t val);
+int64_t av_frame_get_pkt_pos              (const AVFrame *frame);
+void    av_frame_set_pkt_pos              (AVFrame *frame, int64_t val);
+int64_t av_frame_get_channel_layout       (const AVFrame *frame);
+void    av_frame_set_channel_layout       (AVFrame *frame, int64_t val);
+int     av_frame_get_channels             (const AVFrame *frame);
+void    av_frame_set_channels             (AVFrame *frame, int     val);
+int     av_frame_get_sample_rate          (const AVFrame *frame);
+void    av_frame_set_sample_rate          (AVFrame *frame, int     val);
+AVDictionary *av_frame_get_metadata       (const AVFrame *frame);
+void          av_frame_set_metadata       (AVFrame *frame, AVDictionary *val);
+int     av_frame_get_decode_error_flags   (const AVFrame *frame);
+void    av_frame_set_decode_error_flags   (AVFrame *frame, int     val);
+int     av_frame_get_pkt_size(const AVFrame *frame);
+void    av_frame_set_pkt_size(AVFrame *frame, int val);
+AVDictionary **avpriv_frame_get_metadatap(AVFrame *frame);
+#if FF_API_FRAME_QP
+int8_t *av_frame_get_qp_table(AVFrame *f, int *stride, int *type);
+int av_frame_set_qp_table(AVFrame *f, AVBufferRef *buf, int stride, int type);
+#endif
+enum AVColorSpace av_frame_get_colorspace(const AVFrame *frame);
+void    av_frame_set_colorspace(AVFrame *frame, enum AVColorSpace val);
+enum AVColorRange av_frame_get_color_range(const AVFrame *frame);
+void    av_frame_set_color_range(AVFrame *frame, enum AVColorRange val);
+
+/**
+ * Get the name of a colorspace.
+ * @return a static string identifying the colorspace; can be NULL.
+ */
+const char *av_get_colorspace_name(enum AVColorSpace val);
+
+/**
+ * Allocate an AVFrame and set its fields to default values.  The resulting
+ * struct must be freed using av_frame_free().
+ *
+ * @return An AVFrame filled with default values or NULL on failure.
+ *
+ * @note this only allocates the AVFrame itself, not the data buffers. Those
+ * must be allocated through other means, e.g. with av_frame_get_buffer() or
+ * manually.
+ */
+AVFrame *av_frame_alloc(void);
+
+/**
+ * Free the frame and any dynamically allocated objects in it,
+ * e.g. extended_data. If the frame is reference counted, it will be
+ * unreferenced first.
+ *
+ * @param frame frame to be freed. The pointer will be set to NULL.
+ */
+void av_frame_free(AVFrame **frame);
+
+/**
+ * Set up a new reference to the data described by the source frame.
+ *
+ * Copy frame properties from src to dst and create a new reference for each
+ * AVBufferRef from src.
+ *
+ * If src is not reference counted, new buffers are allocated and the data is
+ * copied.
+ *
+ * @warning: dst MUST have been either unreferenced with av_frame_unref(dst),
+ *           or newly allocated with av_frame_alloc() before calling this
+ *           function, or undefined behavior will occur.
+ *
+ * @return 0 on success, a negative AVERROR on error
+ */
+int av_frame_ref(AVFrame *dst, const AVFrame *src);
+
+/**
+ * Create a new frame that references the same data as src.
+ *
+ * This is a shortcut for av_frame_alloc()+av_frame_ref().
+ *
+ * @return newly created AVFrame on success, NULL on error.
+ */
+AVFrame *av_frame_clone(const AVFrame *src);
+
+/**
+ * Unreference all the buffers referenced by frame and reset the frame fields.
+ */
+void av_frame_unref(AVFrame *frame);
+
+/**
+ * Move everything contained in src to dst and reset src.
+ *
+ * @warning: dst is not unreferenced, but directly overwritten without reading
+ *           or deallocating its contents. Call av_frame_unref(dst) manually
+ *           before calling this function to ensure that no memory is leaked.
+ */
+void av_frame_move_ref(AVFrame *dst, AVFrame *src);
+
+/**
+ * Allocate new buffer(s) for audio or video data.
+ *
+ * The following fields must be set on frame before calling this function:
+ * - format (pixel format for video, sample format for audio)
+ * - width and height for video
+ * - nb_samples and channel_layout for audio
+ *
+ * This function will fill AVFrame.data and AVFrame.buf arrays and, if
+ * necessary, allocate and fill AVFrame.extended_data and AVFrame.extended_buf.
+ * For planar formats, one buffer will be allocated for each plane.
+ *
+ * @warning: if frame already has been allocated, calling this function will
+ *           leak memory. In addition, undefined behavior can occur in certain
+ *           cases.
+ *
+ * @param frame frame in which to store the new buffers.
+ * @param align required buffer size alignment
+ *
+ * @return 0 on success, a negative AVERROR on error.
+ */
+int av_frame_get_buffer(AVFrame *frame, int align);
+
+/**
+ * Check if the frame data is writable.
+ *
+ * @return A positive value if the frame data is writable (which is true if and
+ * only if each of the underlying buffers has only one reference, namely the one
+ * stored in this frame). Return 0 otherwise.
+ *
+ * If 1 is returned the answer is valid until av_buffer_ref() is called on any
+ * of the underlying AVBufferRefs (e.g. through av_frame_ref() or directly).
+ *
+ * @see av_frame_make_writable(), av_buffer_is_writable()
+ */
+int av_frame_is_writable(AVFrame *frame);
+
+/**
+ * Ensure that the frame data is writable, avoiding data copy if possible.
+ *
+ * Do nothing if the frame is writable, allocate new buffers and copy the data
+ * if it is not.
+ *
+ * @return 0 on success, a negative AVERROR on error.
+ *
+ * @see av_frame_is_writable(), av_buffer_is_writable(),
+ * av_buffer_make_writable()
+ */
+int av_frame_make_writable(AVFrame *frame);
+
+/**
+ * Copy the frame data from src to dst.
+ *
+ * This function does not allocate anything, dst must be already initialized and
+ * allocated with the same parameters as src.
+ *
+ * This function only copies the frame data (i.e. the contents of the data /
+ * extended data arrays), not any other properties.
+ *
+ * @return >= 0 on success, a negative AVERROR on error.
+ */
+int av_frame_copy(AVFrame *dst, const AVFrame *src);
+
+/**
+ * Copy only "metadata" fields from src to dst.
+ *
+ * Metadata for the purpose of this function are those fields that do not affect
+ * the data layout in the buffers.  E.g. pts, sample rate (for audio) or sample
+ * aspect ratio (for video), but not width/height or channel layout.
+ * Side data is also copied.
+ */
+int av_frame_copy_props(AVFrame *dst, const AVFrame *src);
+
+/**
+ * Get the buffer reference a given data plane is stored in.
+ *
+ * @param plane index of the data plane of interest in frame->extended_data.
+ *
+ * @return the buffer reference that contains the plane or NULL if the input
+ * frame is not valid.
+ */
+AVBufferRef *av_frame_get_plane_buffer(AVFrame *frame, int plane);
+
+/**
+ * Add a new side data to a frame.
+ *
+ * @param frame a frame to which the side data should be added
+ * @param type type of the added side data
+ * @param size size of the side data
+ *
+ * @return newly added side data on success, NULL on error
+ */
+AVFrameSideData *av_frame_new_side_data(AVFrame *frame,
+                                        enum AVFrameSideDataType type,
+                                        int size);
+
+/**
+ * @return a pointer to the side data of a given type on success, NULL if there
+ * is no side data with such type in this frame.
+ */
+AVFrameSideData *av_frame_get_side_data(const AVFrame *frame,
+                                        enum AVFrameSideDataType type);
+
+/**
+ * If side data of the supplied type exists in the frame, free it and remove it
+ * from the frame.
+ */
+void av_frame_remove_side_data(AVFrame *frame, enum AVFrameSideDataType type);
+
+/**
+ * @return a string identifying the side data type
+ */
+const char *av_frame_side_data_name(enum AVFrameSideDataType type);
+
+
+/* libavutil/imgutil.h */
+
+/**
+ * Compute the max pixel step for each plane of an image with a
+ * format described by pixdesc.
+ *
+ * The pixel step is the distance in bytes between the first byte of
+ * the group of bytes which describe a pixel component and the first
+ * byte of the successive group in the same plane for the same
+ * component.
+ *
+ * @param max_pixsteps an array which is filled with the max pixel step
+ * for each plane. Since a plane may contain different pixel
+ * components, the computed max_pixsteps[plane] is relative to the
+ * component in the plane with the max pixel step.
+ * @param max_pixstep_comps an array which is filled with the component
+ * for each plane which has the max pixel step. May be NULL.
+ */
+void av_image_fill_max_pixsteps(int max_pixsteps[4], int max_pixstep_comps[4],
+                                const AVPixFmtDescriptor *pixdesc);
+
+/**
+ * Compute the size of an image line with format pix_fmt and width
+ * width for the plane plane.
+ *
+ * @return the computed size in bytes
+ */
+int av_image_get_linesize(enum AVPixelFormat pix_fmt, int width, int plane);
+
+/**
+ * Fill plane linesizes for an image with pixel format pix_fmt and
+ * width width.
+ *
+ * @param linesizes array to be filled with the linesize for each plane
+ * @return >= 0 in case of success, a negative error code otherwise
+ */
+int av_image_fill_linesizes(int linesizes[4], enum AVPixelFormat pix_fmt, int width);
+
+/**
+ * Fill plane data pointers for an image with pixel format pix_fmt and
+ * height height.
+ *
+ * @param data pointers array to be filled with the pointer for each image plane
+ * @param ptr the pointer to a buffer which will contain the image
+ * @param linesizes the array containing the linesize for each
+ * plane, should be filled by av_image_fill_linesizes()
+ * @return the size in bytes required for the image buffer, a negative
+ * error code in case of failure
+ */
+int av_image_fill_pointers(uint8_t *data[4], enum AVPixelFormat pix_fmt, int height,
+                           uint8_t *ptr, const int linesizes[4]);
+
+/**
+ * Allocate an image with size w and h and pixel format pix_fmt, and
+ * fill pointers and linesizes accordingly.
+ * The allocated image buffer has to be freed by using
+ * av_freep(&pointers[0]).
+ *
+ * @param align the value to use for buffer size alignment
+ * @return the size in bytes required for the image buffer, a negative
+ * error code in case of failure
+ */
+int av_image_alloc(uint8_t *pointers[4], int linesizes[4],
+                   int w, int h, enum AVPixelFormat pix_fmt, int align);
+
+/**
+ * Copy image plane from src to dst.
+ * That is, copy "height" number of lines of "bytewidth" bytes each.
+ * The first byte of each successive line is separated by *_linesize
+ * bytes.
+ *
+ * bytewidth must be contained by both absolute values of dst_linesize
+ * and src_linesize, otherwise the function behavior is undefined.
+ *
+ * @param dst_linesize linesize for the image plane in dst
+ * @param src_linesize linesize for the image plane in src
+ */
+void av_image_copy_plane(uint8_t       *dst, int dst_linesize,
+                         const uint8_t *src, int src_linesize,
+                         int bytewidth, int height);
+
+/**
+ * Copy image in src_data to dst_data.
+ *
+ * @param dst_linesizes linesizes for the image in dst_data
+ * @param src_linesizes linesizes for the image in src_data
+ */
+void av_image_copy(uint8_t *dst_data[4], int dst_linesizes[4],
+                   const uint8_t *src_data[4], const int src_linesizes[4],
+                   enum AVPixelFormat pix_fmt, int width, int height);
+
+/**
+ * Setup the data pointers and linesizes based on the specified image
+ * parameters and the provided array.
+ *
+ * The fields of the given image are filled in by using the src
+ * address which points to the image data buffer. Depending on the
+ * specified pixel format, one or multiple image data pointers and
+ * line sizes will be set.  If a planar format is specified, several
+ * pointers will be set pointing to the different picture planes and
+ * the line sizes of the different planes will be stored in the
+ * lines_sizes array. Call with src == NULL to get the required
+ * size for the src buffer.
+ *
+ * To allocate the buffer and fill in the dst_data and dst_linesize in
+ * one call, use av_image_alloc().
+ *
+ * @param dst_data      data pointers to be filled in
+ * @param dst_linesizes linesizes for the image in dst_data to be filled in
+ * @param src           buffer which will contain or contains the actual image data, can be NULL
+ * @param pix_fmt       the pixel format of the image
+ * @param width         the width of the image in pixels
+ * @param height        the height of the image in pixels
+ * @param align         the value used in src for linesize alignment
+ * @return the size in bytes required for src, a negative error code
+ * in case of failure
+ */
+int av_image_fill_arrays(uint8_t *dst_data[4], int dst_linesize[4],
+                         const uint8_t *src,
+                         enum AVPixelFormat pix_fmt, int width, int height, int align);
+
+/**
+ * Return the size in bytes of the amount of data required to store an
+ * image with the given parameters.
+ *
+ * @param[in] align the assumed linesize alignment
+ */
+int av_image_get_buffer_size(enum AVPixelFormat pix_fmt, int width, int height, int align);
+
+/**
+ * Copy image data from an image into a buffer.
+ *
+ * av_image_get_buffer_size() can be used to compute the required size
+ * for the buffer to fill.
+ *
+ * @param dst           a buffer into which picture data will be copied
+ * @param dst_size      the size in bytes of dst
+ * @param src_data      pointers containing the source image data
+ * @param src_linesizes linesizes for the image in src_data
+ * @param pix_fmt       the pixel format of the source image
+ * @param width         the width of the source image in pixels
+ * @param height        the height of the source image in pixels
+ * @param align         the assumed linesize alignment for dst
+ * @return the number of bytes written to dst, or a negative value
+ * (error code) on error
+ */
+int av_image_copy_to_buffer(uint8_t *dst, int dst_size,
+                            const uint8_t * const src_data[4], const int src_linesize[4],
+                            enum AVPixelFormat pix_fmt, int width, int height, int align);
+
+/**
+ * Check if the given dimension of an image is valid, meaning that all
+ * bytes of the image can be addressed with a signed int.
+ *
+ * @param w the width of the picture
+ * @param h the height of the picture
+ * @param log_offset the offset to sum to the log level for logging with log_ctx
+ * @param log_ctx the parent logging context, it may be NULL
+ * @return >= 0 if valid, a negative error code otherwise
+ */
+int av_image_check_size(unsigned int w, unsigned int h, int log_offset, void *log_ctx);
+
+/**
+ * Check if the given sample aspect ratio of an image is valid.
+ *
+ * It is considered invalid if the denominator is 0 or if applying the ratio
+ * to the image size would make the smaller dimension less than 1. If the
+ * sar numerator is 0, it is considered unknown and will return as valid.
+ *
+ * @param w width of the image
+ * @param h height of the image
+ * @param sar sample aspect ratio of the image
+ * @return 0 if valid, a negative AVERROR code otherwise
+ */
+int av_image_check_sar(unsigned int w, unsigned int h, AVRational sar);
 
 
 /* libavcodec/version.h */
@@ -2348,7 +3401,7 @@ typedef struct RcOverride{
  * interlaced motion estimation
  */
 #define AV_CODEC_FLAG_INTERLACED_ME   (1 << 29)
-#define AV_CODEC_FLAG_CLOSED_GOP      (1U << 31)
+#define AV_CODEC_FLAG_CLOSED_GOP      (1 << 31)
 
 /**
  * Allow non spec compliant speedup tricks.
@@ -7394,7 +8447,7 @@ enum AVStreamParseType {
     AVSTREAM_PARSE_HEADERS,    /**< Only parse headers, do not repack. */
     AVSTREAM_PARSE_TIMESTAMPS, /**< full parsing and interpolation of timestamps for frames not starting on a packet boundary */
     AVSTREAM_PARSE_FULL_ONCE,  /**< full parsing and repack of the first frame only, only implemented for H.264 currently */
-    AVSTREAM_PARSE_FULL_RAW=MKTAG(0,'R','A','W'),       /**< full parsing and repack with timestamp and position generation by parser for raw
+    AVSTREAM_PARSE_FULL_RAW,       /**< full parsing and repack with timestamp and position generation by parser for raw
                                                              this assumes that each packet in the file contains no demuxer level headers and
                                                              just codec level data, otherwise position generation would fail */
 };
@@ -10967,16 +12020,1756 @@ int avdevice_list_output_sinks(struct AVOutputFormat *device, const char *device
                                AVDictionary *device_options, AVDeviceInfoList **device_list);
 
 
+/* libavfilter/version.h */
+
+#define LIBAVFILTER_VERSION_MAJOR   6
+#define LIBAVFILTER_VERSION_MINOR  49
+#define LIBAVFILTER_VERSION_MICRO 100
+
+/* libavfilter/avfilter.h */
+
+/**
+ * Return the LIBAVFILTER_VERSION_INT constant.
+ */
+unsigned avfilter_version(void);
+
+/**
+ * Return the libavfilter build-time configuration.
+ */
+const char *avfilter_configuration(void);
+
+/**
+ * Return the libavfilter license.
+ */
+const char *avfilter_license(void);
+
+typedef struct AVFilterContext AVFilterContext;
+typedef struct AVFilterLink    AVFilterLink;
+typedef struct AVFilterPad     AVFilterPad;
+typedef struct AVFilterFormats AVFilterFormats;
+
+/**
+ * Get the number of elements in a NULL-terminated array of AVFilterPads (e.g.
+ * AVFilter.inputs/outputs).
+ */
+int avfilter_pad_count(const AVFilterPad *pads);
+
+/**
+ * Get the name of an AVFilterPad.
+ *
+ * @param pads an array of AVFilterPads
+ * @param pad_idx index of the pad in the array it; is the caller's
+ *                responsibility to ensure the index is valid
+ *
+ * @return name of the pad_idx'th pad in pads
+ */
+const char *avfilter_pad_get_name(const AVFilterPad *pads, int pad_idx);
+
+/**
+ * Get the type of an AVFilterPad.
+ *
+ * @param pads an array of AVFilterPads
+ * @param pad_idx index of the pad in the array; it is the caller's
+ *                responsibility to ensure the index is valid
+ *
+ * @return type of the pad_idx'th pad in pads
+ */
+enum AVMediaType avfilter_pad_get_type(const AVFilterPad *pads, int pad_idx);
+
+/**
+ * The number of the filter inputs is not determined just by AVFilter.inputs.
+ * The filter might add additional inputs during initialization depending on the
+ * options supplied to it.
+ */
+#define AVFILTER_FLAG_DYNAMIC_INPUTS        (1 << 0)
+/**
+ * The number of the filter outputs is not determined just by AVFilter.outputs.
+ * The filter might add additional outputs during initialization depending on
+ * the options supplied to it.
+ */
+#define AVFILTER_FLAG_DYNAMIC_OUTPUTS       (1 << 1)
+/**
+ * The filter supports multithreading by splitting frames into multiple parts
+ * and processing them concurrently.
+ */
+#define AVFILTER_FLAG_SLICE_THREADS         (1 << 2)
+/**
+ * Some filters support a generic "enable" expression option that can be used
+ * to enable or disable a filter in the timeline. Filters supporting this
+ * option have this flag set. When the enable expression is false, the default
+ * no-op filter_frame() function is called in place of the filter_frame()
+ * callback defined on each input pad, thus the frame is passed unchanged to
+ * the next filters.
+ */
+#define AVFILTER_FLAG_SUPPORT_TIMELINE_GENERIC  (1 << 16)
+/**
+ * Same as AVFILTER_FLAG_SUPPORT_TIMELINE_GENERIC, except that the filter will
+ * have its filter_frame() callback(s) called as usual even when the enable
+ * expression is false. The filter will disable filtering within the
+ * filter_frame() callback(s) itself, for example executing code depending on
+ * the AVFilterContext->is_disabled value.
+ */
+#define AVFILTER_FLAG_SUPPORT_TIMELINE_INTERNAL (1 << 17)
+/**
+ * Handy mask to test whether the filter supports or no the timeline feature
+ * (internally or generically).
+ */
+#define AVFILTER_FLAG_SUPPORT_TIMELINE (AVFILTER_FLAG_SUPPORT_TIMELINE_GENERIC | AVFILTER_FLAG_SUPPORT_TIMELINE_INTERNAL)
+
+/**
+ * Filter definition. This defines the pads a filter contains, and all the
+ * callback functions used to interact with the filter.
+ */
+typedef struct AVFilter {
+    /**
+     * Filter name. Must be non-NULL and unique among filters.
+     */
+    const char *name;
+
+    /**
+     * A description of the filter. May be NULL.
+     *
+     * You should use the NULL_IF_CONFIG_SMALL() macro to define it.
+     */
+    const char *description;
+
+    /**
+     * List of inputs, terminated by a zeroed element.
+     *
+     * NULL if there are no (static) inputs. Instances of filters with
+     * AVFILTER_FLAG_DYNAMIC_INPUTS set may have more inputs than present in
+     * this list.
+     */
+    const AVFilterPad *inputs;
+    /**
+     * List of outputs, terminated by a zeroed element.
+     *
+     * NULL if there are no (static) outputs. Instances of filters with
+     * AVFILTER_FLAG_DYNAMIC_OUTPUTS set may have more outputs than present in
+     * this list.
+     */
+    const AVFilterPad *outputs;
+
+    /**
+     * A class for the private data, used to declare filter private AVOptions.
+     * This field is NULL for filters that do not declare any options.
+     *
+     * If this field is non-NULL, the first member of the filter private data
+     * must be a pointer to AVClass, which will be set by libavfilter generic
+     * code to this class.
+     */
+    const AVClass *priv_class;
+
+    /**
+     * A combination of AVFILTER_FLAG_*
+     */
+    int flags;
+
+    /*****************************************************************
+     * All fields below this line are not part of the public API. They
+     * may not be used outside of libavfilter and can be changed and
+     * removed at will.
+     * New public fields should be added right above.
+     *****************************************************************
+     */
+
+    /**
+     * Filter initialization function.
+     *
+     * This callback will be called only once during the filter lifetime, after
+     * all the options have been set, but before links between filters are
+     * established and format negotiation is done.
+     *
+     * Basic filter initialization should be done here. Filters with dynamic
+     * inputs and/or outputs should create those inputs/outputs here based on
+     * provided options. No more changes to this filter's inputs/outputs can be
+     * done after this callback.
+     *
+     * This callback must not assume that the filter links exist or frame
+     * parameters are known.
+     *
+     * @ref AVFilter.uninit "uninit" is guaranteed to be called even if
+     * initialization fails, so this callback does not have to clean up on
+     * failure.
+     *
+     * @return 0 on success, a negative AVERROR on failure
+     */
+    int (*init)(AVFilterContext *ctx);
+
+    /**
+     * Should be set instead of @ref AVFilter.init "init" by the filters that
+     * want to pass a dictionary of AVOptions to nested contexts that are
+     * allocated during init.
+     *
+     * On return, the options dict should be freed and replaced with one that
+     * contains all the options which could not be processed by this filter (or
+     * with NULL if all the options were processed).
+     *
+     * Otherwise the semantics is the same as for @ref AVFilter.init "init".
+     */
+    int (*init_dict)(AVFilterContext *ctx, AVDictionary **options);
+
+    /**
+     * Filter uninitialization function.
+     *
+     * Called only once right before the filter is freed. Should deallocate any
+     * memory held by the filter, release any buffer references, etc. It does
+     * not need to deallocate the AVFilterContext.priv memory itself.
+     *
+     * This callback may be called even if @ref AVFilter.init "init" was not
+     * called or failed, so it must be prepared to handle such a situation.
+     */
+    void (*uninit)(AVFilterContext *ctx);
+
+    /**
+     * Query formats supported by the filter on its inputs and outputs.
+     *
+     * This callback is called after the filter is initialized (so the inputs
+     * and outputs are fixed), shortly before the format negotiation. This
+     * callback may be called more than once.
+     *
+     * This callback must set AVFilterLink.out_formats on every input link and
+     * AVFilterLink.in_formats on every output link to a list of pixel/sample
+     * formats that the filter supports on that link. For audio links, this
+     * filter must also set @ref AVFilterLink.in_samplerates "in_samplerates" /
+     * @ref AVFilterLink.out_samplerates "out_samplerates" and
+     * @ref AVFilterLink.in_channel_layouts "in_channel_layouts" /
+     * @ref AVFilterLink.out_channel_layouts "out_channel_layouts" analogously.
+     *
+     * This callback may be NULL for filters with one input, in which case
+     * libavfilter assumes that it supports all input formats and preserves
+     * them on output.
+     *
+     * @return zero on success, a negative value corresponding to an
+     * AVERROR code otherwise
+     */
+    int (*query_formats)(AVFilterContext *);
+
+    int priv_size;      ///< size of private data to allocate for the filter
+
+    /**
+     * Used by the filter registration system. Must not be touched by any other
+     * code.
+     */
+    struct AVFilter *next;
+
+    /**
+     * Make the filter instance process a command.
+     *
+     * @param cmd    the command to process, for handling simplicity all commands must be alphanumeric only
+     * @param arg    the argument for the command
+     * @param res    a buffer with size res_size where the filter(s) can return a response. This must not change when the command is not supported.
+     * @param flags  if AVFILTER_CMD_FLAG_FAST is set and the command would be
+     *               time consuming then a filter should treat it like an unsupported command
+     *
+     * @returns >=0 on success otherwise an error code.
+     *          AVERROR(ENOSYS) on unsupported commands
+     */
+    int (*process_command)(AVFilterContext *, const char *cmd, const char *arg, char *res, int res_len, int flags);
+
+    /**
+     * Filter initialization function, alternative to the init()
+     * callback. Args contains the user-supplied parameters, opaque is
+     * used for providing binary data.
+     */
+    int (*init_opaque)(AVFilterContext *ctx, void *opaque);
+} AVFilter;
+
+/**
+ * Process multiple parts of the frame concurrently.
+ */
+#define AVFILTER_THREAD_SLICE (1 << 0)
+
+typedef struct AVFilterInternal AVFilterInternal;
+
+/** An instance of a filter */
+struct AVFilterContext {
+    const AVClass *av_class;        ///< needed for av_log() and filters common options
+
+    const AVFilter *filter;         ///< the AVFilter of which this is an instance
+
+    char *name;                     ///< name of this filter instance
+
+    AVFilterPad   *input_pads;      ///< array of input pads
+    AVFilterLink **inputs;          ///< array of pointers to input links
+    unsigned    nb_inputs;          ///< number of input pads
+
+    AVFilterPad   *output_pads;     ///< array of output pads
+    AVFilterLink **outputs;         ///< array of pointers to output links
+    unsigned    nb_outputs;         ///< number of output pads
+
+    void *priv;                     ///< private data for use by the filter
+
+    struct AVFilterGraph *graph;    ///< filtergraph this filter belongs to
+
+    /**
+     * Type of multithreading being allowed/used. A combination of
+     * AVFILTER_THREAD_* flags.
+     *
+     * May be set by the caller before initializing the filter to forbid some
+     * or all kinds of multithreading for this filter. The default is allowing
+     * everything.
+     *
+     * When the filter is initialized, this field is combined using bit AND with
+     * AVFilterGraph.thread_type to get the final mask used for determining
+     * allowed threading types. I.e. a threading type needs to be set in both
+     * to be allowed.
+     *
+     * After the filter is initialized, libavfilter sets this field to the
+     * threading type that is actually used (0 for no multithreading).
+     */
+    int thread_type;
+
+    /**
+     * An opaque struct for libavfilter internal use.
+     */
+    AVFilterInternal *internal;
+
+    struct AVFilterCommand *command_queue;
+
+    char *enable_str;               ///< enable expression string
+    void *enable;                   ///< parsed expression (AVExpr*)
+    double *var_values;             ///< variable values for the enable expression
+    int is_disabled;                ///< the enabled state from the last expression evaluation
+
+    /**
+     * For filters which will create hardware frames, sets the device the
+     * filter should create them in.  All other filters will ignore this field:
+     * in particular, a filter which consumes or processes hardware frames will
+     * instead use the hw_frames_ctx field in AVFilterLink to carry the
+     * hardware context information.
+     */
+    AVBufferRef *hw_device_ctx;
+};
+
+/**
+ * A link between two filters. This contains pointers to the source and
+ * destination filters between which this link exists, and the indexes of
+ * the pads involved. In addition, this link also contains the parameters
+ * which have been negotiated and agreed upon between the filter, such as
+ * image dimensions, format, etc.
+ */
+struct AVFilterLink {
+    AVFilterContext *src;       ///< source filter
+    AVFilterPad *srcpad;        ///< output pad on the source filter
+
+    AVFilterContext *dst;       ///< dest filter
+    AVFilterPad *dstpad;        ///< input pad on the dest filter
+
+    enum AVMediaType type;      ///< filter media type
+
+    /* These parameters apply only to video */
+    int w;                      ///< agreed upon image width
+    int h;                      ///< agreed upon image height
+    AVRational sample_aspect_ratio; ///< agreed upon sample aspect ratio
+    /* These parameters apply only to audio */
+    uint64_t channel_layout;    ///< channel layout of current buffer (see libavutil/channel_layout.h)
+    int sample_rate;            ///< samples per second
+
+    int format;                 ///< agreed upon media format
+
+    /**
+     * Define the time base used by the PTS of the frames/samples
+     * which will pass through this link.
+     * During the configuration stage, each filter is supposed to
+     * change only the output timebase, while the timebase of the
+     * input link is assumed to be an unchangeable property.
+     */
+    AVRational time_base;
+
+    /*****************************************************************
+     * All fields below this line are not part of the public API. They
+     * may not be used outside of libavfilter and can be changed and
+     * removed at will.
+     * New public fields should be added right above.
+     *****************************************************************
+     */
+    /**
+     * Lists of formats and channel layouts supported by the input and output
+     * filters respectively. These lists are used for negotiating the format
+     * to actually be used, which will be loaded into the format and
+     * channel_layout members, above, when chosen.
+     *
+     */
+    AVFilterFormats *in_formats;
+    AVFilterFormats *out_formats;
+
+    /**
+     * Lists of channel layouts and sample rates used for automatic
+     * negotiation.
+     */
+    AVFilterFormats  *in_samplerates;
+    AVFilterFormats *out_samplerates;
+    struct AVFilterChannelLayouts  *in_channel_layouts;
+    struct AVFilterChannelLayouts *out_channel_layouts;
+
+    /**
+     * Audio only, the destination filter sets this to a non-zero value to
+     * request that buffers with the given number of samples should be sent to
+     * it. AVFilterPad.needs_fifo must also be set on the corresponding input
+     * pad.
+     * Last buffer before EOF will be padded with silence.
+     */
+    int request_samples;
+
+    /** stage of the initialization of the link properties (dimensions, etc) */
+    enum {
+        AVLINK_UNINIT = 0,      ///< not started
+        AVLINK_STARTINIT,       ///< started, but incomplete
+        AVLINK_INIT             ///< complete
+    } init_state;
+
+    /**
+     * Graph the filter belongs to.
+     */
+    struct AVFilterGraph *graph;
+
+    /**
+     * Current timestamp of the link, as defined by the most recent
+     * frame(s), in link time_base units.
+     */
+    int64_t current_pts;
+
+    /**
+     * Current timestamp of the link, as defined by the most recent
+     * frame(s), in AV_TIME_BASE units.
+     */
+    int64_t current_pts_us;
+
+    /**
+     * Index in the age array.
+     */
+    int age_index;
+
+    /**
+     * Frame rate of the stream on the link, or 1/0 if unknown or variable;
+     * if left to 0/0, will be automatically copied from the first input
+     * of the source filter if it exists.
+     *
+     * Sources should set it to the best estimation of the real frame rate.
+     * If the source frame rate is unknown or variable, set this to 1/0.
+     * Filters should update it if necessary depending on their function.
+     * Sinks can use it to set a default output frame rate.
+     * It is similar to the r_frame_rate field in AVStream.
+     */
+    AVRational frame_rate;
+
+    /**
+     * Buffer partially filled with samples to achieve a fixed/minimum size.
+     */
+    AVFrame *partial_buf;
+
+    /**
+     * Size of the partial buffer to allocate.
+     * Must be between min_samples and max_samples.
+     */
+    int partial_buf_size;
+
+    /**
+     * Minimum number of samples to filter at once. If filter_frame() is
+     * called with fewer samples, it will accumulate them in partial_buf.
+     * This field and the related ones must not be changed after filtering
+     * has started.
+     * If 0, all related fields are ignored.
+     */
+    int min_samples;
+
+    /**
+     * Maximum number of samples to filter at once. If filter_frame() is
+     * called with more samples, it will split them.
+     */
+    int max_samples;
+
+    /**
+     * Link status.
+     * If not zero, all attempts of filter_frame or request_frame
+     * will fail with the corresponding code, and if necessary the reference
+     * will be destroyed.
+     * If request_frame returns an error, the status is set on the
+     * corresponding link.
+     * It can be set also be set by either the source or the destination
+     * filter.
+     */
+    int status;
+
+    /**
+     * Number of channels.
+     */
+    int channels;
+
+    /**
+     * Link processing flags.
+     */
+    unsigned flags;
+
+    /**
+     * Number of past frames sent through the link.
+     */
+    int64_t frame_count;
+
+    /**
+     * A pointer to a FFVideoFramePool struct.
+     */
+    void *video_frame_pool;
+
+    /**
+     * True if a frame is currently wanted on the input of this filter.
+     * Set when ff_request_frame() is called by the output,
+     * cleared when the request is handled or forwarded.
+     */
+    int frame_wanted_in;
+
+    /**
+     * True if a frame is currently wanted on the output of this filter.
+     * Set when ff_request_frame() is called by the output,
+     * cleared when a frame is filtered.
+     */
+    int frame_wanted_out;
+
+    /**
+     * For hwaccel pixel formats, this should be a reference to the
+     * AVHWFramesContext describing the frames.
+     */
+    AVBufferRef *hw_frames_ctx;
+};
+
+/**
+ * Link two filters together.
+ *
+ * @param src    the source filter
+ * @param srcpad index of the output pad on the source filter
+ * @param dst    the destination filter
+ * @param dstpad index of the input pad on the destination filter
+ * @return       zero on success
+ */
+int avfilter_link(AVFilterContext *src, unsigned srcpad,
+                  AVFilterContext *dst, unsigned dstpad);
+
+/**
+ * Free the link in *link, and set its pointer to NULL.
+ */
+void avfilter_link_free(AVFilterLink **link);
+
+/**
+ * Get the number of channels of a link.
+ */
+int avfilter_link_get_channels(AVFilterLink *link);
+
+/**
+ * Negotiate the media format, dimensions, etc of all inputs to a filter.
+ *
+ * @param filter the filter to negotiate the properties for its inputs
+ * @return       zero on successful negotiation
+ */
+int avfilter_config_links(AVFilterContext *filter);
+
+#define AVFILTER_CMD_FLAG_ONE   1 ///< Stop once a filter understood the command (for target=all for example), fast filters are favored automatically
+#define AVFILTER_CMD_FLAG_FAST  2 ///< Only execute command when its fast (like a video out that supports contrast adjustment in hw)
+
+/**
+ * Make the filter instance process a command.
+ * It is recommended to use avfilter_graph_send_command().
+ */
+int avfilter_process_command(AVFilterContext *filter, const char *cmd, const char *arg, char *res, int res_len, int flags);
+
+/** Initialize the filter system. Register all builtin filters. */
+void avfilter_register_all(void);
+
+/**
+ * Register a filter. This is only needed if you plan to use
+ * avfilter_get_by_name later to lookup the AVFilter structure by name. A
+ * filter can still by instantiated with avfilter_graph_alloc_filter even if it
+ * is not registered.
+ *
+ * @param filter the filter to register
+ * @return 0 if the registration was successful, a negative value
+ * otherwise
+ */
+int avfilter_register(AVFilter *filter);
+
+/**
+ * Get a filter definition matching the given name.
+ *
+ * @param name the filter name to find
+ * @return     the filter definition, if any matching one is registered.
+ *             NULL if none found.
+ */
+#if !FF_API_NOCONST_GET_NAME
+const
+#endif
+AVFilter *avfilter_get_by_name(const char *name);
+
+/**
+ * Iterate over all registered filters.
+ * @return If prev is non-NULL, next registered filter after prev or NULL if
+ * prev is the last filter. If prev is NULL, return the first registered filter.
+ */
+const AVFilter *avfilter_next(const AVFilter *prev);
+
+#if FF_API_AVFILTER_INIT_FILTER
+/**
+ * Initialize a filter.
+ *
+ * @param filter the filter to initialize
+ * @param args   A string of parameters to use when initializing the filter.
+ *               The format and meaning of this string varies by filter.
+ * @param opaque Any extra non-string data needed by the filter. The meaning
+ *               of this parameter varies by filter.
+ * @return       zero on success
+ */
+attribute_deprecated
+int avfilter_init_filter(AVFilterContext *filter, const char *args, void *opaque);
+#endif
+
+/**
+ * Initialize a filter with the supplied parameters.
+ *
+ * @param ctx  uninitialized filter context to initialize
+ * @param args Options to initialize the filter with. This must be a
+ *             ':'-separated list of options in the 'key=value' form.
+ *             May be NULL if the options have been set directly using the
+ *             AVOptions API or there are no options that need to be set.
+ * @return 0 on success, a negative AVERROR on failure
+ */
+int avfilter_init_str(AVFilterContext *ctx, const char *args);
+
+/**
+ * Initialize a filter with the supplied dictionary of options.
+ *
+ * @param ctx     uninitialized filter context to initialize
+ * @param options An AVDictionary filled with options for this filter. On
+ *                return this parameter will be destroyed and replaced with
+ *                a dict containing options that were not found. This dictionary
+ *                must be freed by the caller.
+ *                May be NULL, then this function is equivalent to
+ *                avfilter_init_str() with the second parameter set to NULL.
+ * @return 0 on success, a negative AVERROR on failure
+ *
+ * @note This function and avfilter_init_str() do essentially the same thing,
+ * the difference is in manner in which the options are passed. It is up to the
+ * calling code to choose whichever is more preferable. The two functions also
+ * behave differently when some of the provided options are not declared as
+ * supported by the filter. In such a case, avfilter_init_str() will fail, but
+ * this function will leave those extra options in the options AVDictionary and
+ * continue as usual.
+ */
+int avfilter_init_dict(AVFilterContext *ctx, AVDictionary **options);
+
+/**
+ * Free a filter context. This will also remove the filter from its
+ * filtergraph's list of filters.
+ *
+ * @param filter the filter to free
+ */
+void avfilter_free(AVFilterContext *filter);
+
+/**
+ * Insert a filter in the middle of an existing link.
+ *
+ * @param link the link into which the filter should be inserted
+ * @param filt the filter to be inserted
+ * @param filt_srcpad_idx the input pad on the filter to connect
+ * @param filt_dstpad_idx the output pad on the filter to connect
+ * @return     zero on success
+ */
+int avfilter_insert_filter(AVFilterLink *link, AVFilterContext *filt,
+                           unsigned filt_srcpad_idx, unsigned filt_dstpad_idx);
+
+/**
+ * @return AVClass for AVFilterContext.
+ *
+ * @see av_opt_find().
+ */
+const AVClass *avfilter_get_class(void);
+
+typedef struct AVFilterGraphInternal AVFilterGraphInternal;
+
+/**
+ * A function pointer passed to the @ref AVFilterGraph.execute callback to be
+ * executed multiple times, possibly in parallel.
+ *
+ * @param ctx the filter context the job belongs to
+ * @param arg an opaque parameter passed through from @ref
+ *            AVFilterGraph.execute
+ * @param jobnr the index of the job being executed
+ * @param nb_jobs the total number of jobs
+ *
+ * @return 0 on success, a negative AVERROR on error
+ */
+typedef int (avfilter_action_func)(AVFilterContext *ctx, void *arg, int jobnr, int nb_jobs);
+
+/**
+ * A function executing multiple jobs, possibly in parallel.
+ *
+ * @param ctx the filter context to which the jobs belong
+ * @param func the function to be called multiple times
+ * @param arg the argument to be passed to func
+ * @param ret a nb_jobs-sized array to be filled with return values from each
+ *            invocation of func
+ * @param nb_jobs the number of jobs to execute
+ *
+ * @return 0 on success, a negative AVERROR on error
+ */
+typedef int (avfilter_execute_func)(AVFilterContext *ctx, avfilter_action_func *func,
+                                    void *arg, int *ret, int nb_jobs);
+
+typedef struct AVFilterGraph {
+    const AVClass *av_class;
+    AVFilterContext **filters;
+    unsigned nb_filters;
+
+    char *scale_sws_opts; ///< sws options to use for the auto-inserted scale filters
+    char *resample_lavr_opts;   ///< libavresample options to use for the auto-inserted resample filters
+
+    /**
+     * Type of multithreading allowed for filters in this graph. A combination
+     * of AVFILTER_THREAD_* flags.
+     *
+     * May be set by the caller at any point, the setting will apply to all
+     * filters initialized after that. The default is allowing everything.
+     *
+     * When a filter in this graph is initialized, this field is combined using
+     * bit AND with AVFilterContext.thread_type to get the final mask used for
+     * determining allowed threading types. I.e. a threading type needs to be
+     * set in both to be allowed.
+     */
+    int thread_type;
+
+    /**
+     * Maximum number of threads used by filters in this graph. May be set by
+     * the caller before adding any filters to the filtergraph. Zero (the
+     * default) means that the number of threads is determined automatically.
+     */
+    int nb_threads;
+
+    /**
+     * Opaque object for libavfilter internal use.
+     */
+    AVFilterGraphInternal *internal;
+
+    /**
+     * Opaque user data. May be set by the caller to an arbitrary value, e.g. to
+     * be used from callbacks like @ref AVFilterGraph.execute.
+     * Libavfilter will not touch this field in any way.
+     */
+    void *opaque;
+
+    /**
+     * This callback may be set by the caller immediately after allocating the
+     * graph and before adding any filters to it, to provide a custom
+     * multithreading implementation.
+     *
+     * If set, filters with slice threading capability will call this callback
+     * to execute multiple jobs in parallel.
+     *
+     * If this field is left unset, libavfilter will use its internal
+     * implementation, which may or may not be multithreaded depending on the
+     * platform and build options.
+     */
+    avfilter_execute_func *execute;
+
+    char *aresample_swr_opts; ///< swr options to use for the auto-inserted aresample filters, Access ONLY through AVOptions
+
+    /**
+     * Private fields
+     *
+     * The following fields are for internal use only.
+     * Their type, offset, number and semantic can change without notice.
+     */
+
+    AVFilterLink **sink_links;
+    int sink_links_count;
+
+    unsigned disable_auto_convert;
+} AVFilterGraph;
+
+/**
+ * Allocate a filter graph.
+ *
+ * @return the allocated filter graph on success or NULL.
+ */
+AVFilterGraph *avfilter_graph_alloc(void);
+
+/**
+ * Create a new filter instance in a filter graph.
+ *
+ * @param graph graph in which the new filter will be used
+ * @param filter the filter to create an instance of
+ * @param name Name to give to the new instance (will be copied to
+ *             AVFilterContext.name). This may be used by the caller to identify
+ *             different filters, libavfilter itself assigns no semantics to
+ *             this parameter. May be NULL.
+ *
+ * @return the context of the newly created filter instance (note that it is
+ *         also retrievable directly through AVFilterGraph.filters or with
+ *         avfilter_graph_get_filter()) on success or NULL on failure.
+ */
+AVFilterContext *avfilter_graph_alloc_filter(AVFilterGraph *graph,
+                                             const AVFilter *filter,
+                                             const char *name);
+
+/**
+ * Get a filter instance identified by instance name from graph.
+ *
+ * @param graph filter graph to search through.
+ * @param name filter instance name (should be unique in the graph).
+ * @return the pointer to the found filter instance or NULL if it
+ * cannot be found.
+ */
+AVFilterContext *avfilter_graph_get_filter(AVFilterGraph *graph, const char *name);
+
+/**
+ * Create and add a filter instance into an existing graph.
+ * The filter instance is created from the filter filt and inited
+ * with the parameters args and opaque.
+ *
+ * In case of success put in *filt_ctx the pointer to the created
+ * filter instance, otherwise set *filt_ctx to NULL.
+ *
+ * @param name the instance name to give to the created filter instance
+ * @param graph_ctx the filter graph
+ * @return a negative AVERROR error code in case of failure, a non
+ * negative value otherwise
+ */
+int avfilter_graph_create_filter(AVFilterContext **filt_ctx, const AVFilter *filt,
+                                 const char *name, const char *args, void *opaque,
+                                 AVFilterGraph *graph_ctx);
+
+/**
+ * Enable or disable automatic format conversion inside the graph.
+ *
+ * Note that format conversion can still happen inside explicitly inserted
+ * scale and aresample filters.
+ *
+ * @param flags  any of the AVFILTER_AUTO_CONVERT_* constants
+ */
+void avfilter_graph_set_auto_convert(AVFilterGraph *graph, unsigned flags);
+
+enum {
+    AVFILTER_AUTO_CONVERT_ALL  =  0, /**< all automatic conversions enabled */
+    AVFILTER_AUTO_CONVERT_NONE = -1, /**< all automatic conversions disabled */
+};
+
+/**
+ * Check validity and configure all the links and formats in the graph.
+ *
+ * @param graphctx the filter graph
+ * @param log_ctx context used for logging
+ * @return >= 0 in case of success, a negative AVERROR code otherwise
+ */
+int avfilter_graph_config(AVFilterGraph *graphctx, void *log_ctx);
+
+/**
+ * Free a graph, destroy its links, and set *graph to NULL.
+ * If *graph is NULL, do nothing.
+ */
+void avfilter_graph_free(AVFilterGraph **graph);
+
+/**
+ * A linked-list of the inputs/outputs of the filter chain.
+ *
+ * This is mainly useful for avfilter_graph_parse() / avfilter_graph_parse2(),
+ * where it is used to communicate open (unlinked) inputs and outputs from and
+ * to the caller.
+ * This struct specifies, per each not connected pad contained in the graph, the
+ * filter context and the pad index required for establishing a link.
+ */
+typedef struct AVFilterInOut {
+    /** unique name for this input/output in the list */
+    char *name;
+
+    /** filter context associated to this input/output */
+    AVFilterContext *filter_ctx;
+
+    /** index of the filt_ctx pad to use for linking */
+    int pad_idx;
+
+    /** next input/input in the list, NULL if this is the last */
+    struct AVFilterInOut *next;
+} AVFilterInOut;
+
+/**
+ * Allocate a single AVFilterInOut entry.
+ * Must be freed with avfilter_inout_free().
+ * @return allocated AVFilterInOut on success, NULL on failure.
+ */
+AVFilterInOut *avfilter_inout_alloc(void);
+
+/**
+ * Free the supplied list of AVFilterInOut and set *inout to NULL.
+ * If *inout is NULL, do nothing.
+ */
+void avfilter_inout_free(AVFilterInOut **inout);
+
+/**
+ * Add a graph described by a string to a graph.
+ *
+ * @note The caller must provide the lists of inputs and outputs,
+ * which therefore must be known before calling the function.
+ *
+ * @note The inputs parameter describes inputs of the already existing
+ * part of the graph; i.e. from the point of view of the newly created
+ * part, they are outputs. Similarly the outputs parameter describes
+ * outputs of the already existing filters, which are provided as
+ * inputs to the parsed filters.
+ *
+ * @param graph   the filter graph where to link the parsed graph context
+ * @param filters string to be parsed
+ * @param inputs  linked list to the inputs of the graph
+ * @param outputs linked list to the outputs of the graph
+ * @return zero on success, a negative AVERROR code on error
+ */
+int avfilter_graph_parse(AVFilterGraph *graph, const char *filters,
+                         AVFilterInOut *inputs, AVFilterInOut *outputs,
+                         void *log_ctx);
+
+/**
+ * Add a graph described by a string to a graph.
+ *
+ * In the graph filters description, if the input label of the first
+ * filter is not specified, "in" is assumed; if the output label of
+ * the last filter is not specified, "out" is assumed.
+ *
+ * @param graph   the filter graph where to link the parsed graph context
+ * @param filters string to be parsed
+ * @param inputs  pointer to a linked list to the inputs of the graph, may be NULL.
+ *                If non-NULL, *inputs is updated to contain the list of open inputs
+ *                after the parsing, should be freed with avfilter_inout_free().
+ * @param outputs pointer to a linked list to the outputs of the graph, may be NULL.
+ *                If non-NULL, *outputs is updated to contain the list of open outputs
+ *                after the parsing, should be freed with avfilter_inout_free().
+ * @return non negative on success, a negative AVERROR code on error
+ */
+int avfilter_graph_parse_ptr(AVFilterGraph *graph, const char *filters,
+                             AVFilterInOut **inputs, AVFilterInOut **outputs,
+                             void *log_ctx);
+
+/**
+ * Add a graph described by a string to a graph.
+ *
+ * @param[in]  graph   the filter graph where to link the parsed graph context
+ * @param[in]  filters string to be parsed
+ * @param[out] inputs  a linked list of all free (unlinked) inputs of the
+ *                     parsed graph will be returned here. It is to be freed
+ *                     by the caller using avfilter_inout_free().
+ * @param[out] outputs a linked list of all free (unlinked) outputs of the
+ *                     parsed graph will be returned here. It is to be freed by the
+ *                     caller using avfilter_inout_free().
+ * @return zero on success, a negative AVERROR code on error
+ *
+ * @note This function returns the inputs and outputs that are left
+ * unlinked after parsing the graph and the caller then deals with
+ * them.
+ * @note This function makes no reference whatsoever to already
+ * existing parts of the graph and the inputs parameter will on return
+ * contain inputs of the newly parsed part of the graph.  Analogously
+ * the outputs parameter will contain outputs of the newly created
+ * filters.
+ */
+int avfilter_graph_parse2(AVFilterGraph *graph, const char *filters,
+                          AVFilterInOut **inputs,
+                          AVFilterInOut **outputs);
+
+/**
+ * Send a command to one or more filter instances.
+ *
+ * @param graph  the filter graph
+ * @param target the filter(s) to which the command should be sent
+ *               "all" sends to all filters
+ *               otherwise it can be a filter or filter instance name
+ *               which will send the command to all matching filters.
+ * @param cmd    the command to send, for handling simplicity all commands must be alphanumeric only
+ * @param arg    the argument for the command
+ * @param res    a buffer with size res_size where the filter(s) can return a response.
+ *
+ * @returns >=0 on success otherwise an error code.
+ *              AVERROR(ENOSYS) on unsupported commands
+ */
+int avfilter_graph_send_command(AVFilterGraph *graph, const char *target, const char *cmd, const char *arg, char *res, int res_len, int flags);
+
+/**
+ * Queue a command for one or more filter instances.
+ *
+ * @param graph  the filter graph
+ * @param target the filter(s) to which the command should be sent
+ *               "all" sends to all filters
+ *               otherwise it can be a filter or filter instance name
+ *               which will send the command to all matching filters.
+ * @param cmd    the command to sent, for handling simplicity all commands must be alphanumeric only
+ * @param arg    the argument for the command
+ * @param ts     time at which the command should be sent to the filter
+ *
+ * @note As this executes commands after this function returns, no return code
+ *       from the filter is provided, also AVFILTER_CMD_FLAG_ONE is not supported.
+ */
+int avfilter_graph_queue_command(AVFilterGraph *graph, const char *target, const char *cmd, const char *arg, int flags, double ts);
+
+
+/**
+ * Dump a graph into a human-readable string representation.
+ *
+ * @param graph    the graph to dump
+ * @param options  formatting options; currently ignored
+ * @return  a string, or NULL in case of memory allocation failure;
+ *          the string must be freed using av_free
+ */
+char *avfilter_graph_dump(AVFilterGraph *graph, const char *options);
+
+/**
+ * Request a frame on the oldest sink link.
+ *
+ * If the request returns AVERROR_EOF, try the next.
+ *
+ * Note that this function is not meant to be the sole scheduling mechanism
+ * of a filtergraph, only a convenience function to help drain a filtergraph
+ * in a balanced way under normal circumstances.
+ *
+ * Also note that AVERROR_EOF does not mean that frames did not arrive on
+ * some of the sinks during the process.
+ * When there are multiple sink links, in case the requested link
+ * returns an EOF, this may cause a filter to flush pending frames
+ * which are sent to another sink link, although unrequested.
+ *
+ * @return  the return value of ff_request_frame(),
+ *          or AVERROR_EOF if all links returned AVERROR_EOF
+ */
+int avfilter_graph_request_oldest(AVFilterGraph *graph);
+
+
+/* libswscale/version.h */
+
+#define LIBSWSCALE_VERSION_MAJOR   4
+#define LIBSWSCALE_VERSION_MINOR   1
+#define LIBSWSCALE_VERSION_MICRO 100
+
+
+/* libswscale/swscale.h */
+
+/**
+ * @defgroup libsws Color conversion and scaling
+ * @{
+ *
+ * Return the LIBSWSCALE_VERSION_INT constant.
+ */
+unsigned swscale_version(void);
+
+/**
+ * Return the libswscale build-time configuration.
+ */
+const char *swscale_configuration(void);
+
+/**
+ * Return the libswscale license.
+ */
+const char *swscale_license(void);
+
+/* values for the flags, the stuff on the command line is different */
+#define SWS_FAST_BILINEAR     1
+#define SWS_BILINEAR          2
+#define SWS_BICUBIC           4
+#define SWS_X                 8
+#define SWS_POINT          0x10
+#define SWS_AREA           0x20
+#define SWS_BICUBLIN       0x40
+#define SWS_GAUSS          0x80
+#define SWS_SINC          0x100
+#define SWS_LANCZOS       0x200
+#define SWS_SPLINE        0x400
+
+#define SWS_SRC_V_CHR_DROP_MASK     0x30000
+#define SWS_SRC_V_CHR_DROP_SHIFT    16
+
+#define SWS_PARAM_DEFAULT           123456
+
+#define SWS_PRINT_INFO              0x1000
+
+//the following 3 flags are not completely implemented
+//internal chrominance subsampling info
+#define SWS_FULL_CHR_H_INT    0x2000
+//input subsampling info
+#define SWS_FULL_CHR_H_INP    0x4000
+#define SWS_DIRECT_BGR        0x8000
+#define SWS_ACCURATE_RND      0x40000
+#define SWS_BITEXACT          0x80000
+#define SWS_ERROR_DIFFUSION  0x800000
+
+#define SWS_MAX_REDUCE_CUTOFF 0.002
+
+#define SWS_CS_ITU709         1
+#define SWS_CS_FCC            4
+#define SWS_CS_ITU601         5
+#define SWS_CS_ITU624         5
+#define SWS_CS_SMPTE170M      5
+#define SWS_CS_SMPTE240M      7
+#define SWS_CS_DEFAULT        5
+#define SWS_CS_BT2020         9
+
+/**
+ * Return a pointer to yuv<->rgb coefficients for the given colorspace
+ * suitable for sws_setColorspaceDetails().
+ *
+ * @param colorspace One of the SWS_CS_* macros. If invalid,
+ * SWS_CS_DEFAULT is used.
+ */
+const int *sws_getCoefficients(int colorspace);
+
+// when used for filters they must have an odd number of elements
+// coeffs cannot be shared between vectors
+typedef struct SwsVector {
+    double *coeff;              ///< pointer to the list of coefficients
+    int length;                 ///< number of coefficients in the vector
+} SwsVector;
+
+// vectors can be shared
+typedef struct SwsFilter {
+    SwsVector *lumH;
+    SwsVector *lumV;
+    SwsVector *chrH;
+    SwsVector *chrV;
+} SwsFilter;
+
+struct SwsContext;
+
+/**
+ * Return a positive value if pix_fmt is a supported input format, 0
+ * otherwise.
+ */
+int sws_isSupportedInput(enum AVPixelFormat pix_fmt);
+
+/**
+ * Return a positive value if pix_fmt is a supported output format, 0
+ * otherwise.
+ */
+int sws_isSupportedOutput(enum AVPixelFormat pix_fmt);
+
+/**
+ * @param[in]  pix_fmt the pixel format
+ * @return a positive value if an endianness conversion for pix_fmt is
+ * supported, 0 otherwise.
+ */
+int sws_isSupportedEndiannessConversion(enum AVPixelFormat pix_fmt);
+
+/**
+ * Allocate an empty SwsContext. This must be filled and passed to
+ * sws_init_context(). For filling see AVOptions, options.c and
+ * sws_setColorspaceDetails().
+ */
+struct SwsContext *sws_alloc_context(void);
+
+/**
+ * Initialize the swscaler context sws_context.
+ *
+ * @return zero or positive value on success, a negative value on
+ * error
+ */
+av_warn_unused_result
+int sws_init_context(struct SwsContext *sws_context, SwsFilter *srcFilter, SwsFilter *dstFilter);
+
+/**
+ * Free the swscaler context swsContext.
+ * If swsContext is NULL, then does nothing.
+ */
+void sws_freeContext(struct SwsContext *swsContext);
+
+/**
+ * Allocate and return an SwsContext. You need it to perform
+ * scaling/conversion operations using sws_scale().
+ *
+ * @param srcW the width of the source image
+ * @param srcH the height of the source image
+ * @param srcFormat the source image format
+ * @param dstW the width of the destination image
+ * @param dstH the height of the destination image
+ * @param dstFormat the destination image format
+ * @param flags specify which algorithm and options to use for rescaling
+ * @param param extra parameters to tune the used scaler
+ *              For SWS_BICUBIC param[0] and [1] tune the shape of the basis
+ *              function, param[0] tunes f(1) and param[1] f´(1)
+ *              For SWS_GAUSS param[0] tunes the exponent and thus cutoff
+ *              frequency
+ *              For SWS_LANCZOS param[0] tunes the width of the window function
+ * @return a pointer to an allocated context, or NULL in case of error
+ * @note this function is to be removed after a saner alternative is
+ *       written
+ */
+struct SwsContext *sws_getContext(int srcW, int srcH, enum AVPixelFormat srcFormat,
+                                  int dstW, int dstH, enum AVPixelFormat dstFormat,
+                                  int flags, SwsFilter *srcFilter,
+                                  SwsFilter *dstFilter, const double *param);
+
+/**
+ * Scale the image slice in srcSlice and put the resulting scaled
+ * slice in the image in dst. A slice is a sequence of consecutive
+ * rows in an image.
+ *
+ * Slices have to be provided in sequential order, either in
+ * top-bottom or bottom-top order. If slices are provided in
+ * non-sequential order the behavior of the function is undefined.
+ *
+ * @param c         the scaling context previously created with
+ *                  sws_getContext()
+ * @param srcSlice  the array containing the pointers to the planes of
+ *                  the source slice
+ * @param srcStride the array containing the strides for each plane of
+ *                  the source image
+ * @param srcSliceY the position in the source image of the slice to
+ *                  process, that is the number (counted starting from
+ *                  zero) in the image of the first row of the slice
+ * @param srcSliceH the height of the source slice, that is the number
+ *                  of rows in the slice
+ * @param dst       the array containing the pointers to the planes of
+ *                  the destination image
+ * @param dstStride the array containing the strides for each plane of
+ *                  the destination image
+ * @return          the height of the output slice
+ */
+int sws_scale(struct SwsContext *c, const uint8_t *const srcSlice[],
+              const int srcStride[], int srcSliceY, int srcSliceH,
+              uint8_t *const dst[], const int dstStride[]);
+
+/**
+ * @param dstRange flag indicating the while-black range of the output (1=jpeg / 0=mpeg)
+ * @param srcRange flag indicating the while-black range of the input (1=jpeg / 0=mpeg)
+ * @param table the yuv2rgb coefficients describing the output yuv space, normally ff_yuv2rgb_coeffs[x]
+ * @param inv_table the yuv2rgb coefficients describing the input yuv space, normally ff_yuv2rgb_coeffs[x]
+ * @param brightness 16.16 fixed point brightness correction
+ * @param contrast 16.16 fixed point contrast correction
+ * @param saturation 16.16 fixed point saturation correction
+ * @return -1 if not supported
+ */
+int sws_setColorspaceDetails(struct SwsContext *c, const int inv_table[4],
+                             int srcRange, const int table[4], int dstRange,
+                             int brightness, int contrast, int saturation);
+
+/**
+ * @return -1 if not supported
+ */
+int sws_getColorspaceDetails(struct SwsContext *c, int **inv_table,
+                             int *srcRange, int **table, int *dstRange,
+                             int *brightness, int *contrast, int *saturation);
+
+/**
+ * Allocate and return an uninitialized vector with length coefficients.
+ */
+SwsVector *sws_allocVec(int length);
+
+/**
+ * Return a normalized Gaussian curve used to filter stuff
+ * quality = 3 is high quality, lower is lower quality.
+ */
+SwsVector *sws_getGaussianVec(double variance, double quality);
+
+/**
+ * Scale all the coefficients of a by the scalar value.
+ */
+void sws_scaleVec(SwsVector *a, double scalar);
+
+/**
+ * Scale all the coefficients of a so that their sum equals height.
+ */
+void sws_normalizeVec(SwsVector *a, double height);
+
+#if FF_API_SWS_VECTOR
+attribute_deprecated SwsVector *sws_getConstVec(double c, int length);
+attribute_deprecated SwsVector *sws_getIdentityVec(void);
+attribute_deprecated void sws_convVec(SwsVector *a, SwsVector *b);
+attribute_deprecated void sws_addVec(SwsVector *a, SwsVector *b);
+attribute_deprecated void sws_subVec(SwsVector *a, SwsVector *b);
+attribute_deprecated void sws_shiftVec(SwsVector *a, int shift);
+attribute_deprecated SwsVector *sws_cloneVec(SwsVector *a);
+attribute_deprecated void sws_printVec2(SwsVector *a, AVClass *log_ctx, int log_level);
+#endif
+
+void sws_freeVec(SwsVector *a);
+
+SwsFilter *sws_getDefaultFilter(float lumaGBlur, float chromaGBlur,
+                                float lumaSharpen, float chromaSharpen,
+                                float chromaHShift, float chromaVShift,
+                                int verbose);
+void sws_freeFilter(SwsFilter *filter);
+
+/**
+ * Check if context can be reused, otherwise reallocate a new one.
+ *
+ * If context is NULL, just calls sws_getContext() to get a new
+ * context. Otherwise, checks if the parameters are the ones already
+ * saved in context. If that is the case, returns the current
+ * context. Otherwise, frees context and gets a new context with
+ * the new parameters.
+ *
+ * Be warned that srcFilter and dstFilter are not checked, they
+ * are assumed to remain the same.
+ */
+struct SwsContext *sws_getCachedContext(struct SwsContext *context,
+                                        int srcW, int srcH, enum AVPixelFormat srcFormat,
+                                        int dstW, int dstH, enum AVPixelFormat dstFormat,
+                                        int flags, SwsFilter *srcFilter,
+                                        SwsFilter *dstFilter, const double *param);
+
+/**
+ * Convert an 8-bit paletted frame into a frame with a color depth of 32 bits.
+ *
+ * The output frame will have the same packed format as the palette.
+ *
+ * @param src        source frame buffer
+ * @param dst        destination frame buffer
+ * @param num_pixels number of pixels to convert
+ * @param palette    array with [256] entries, which must match color arrangement (RGB or BGR) of src
+ */
+void sws_convertPalette8ToPacked32(const uint8_t *src, uint8_t *dst, int num_pixels, const uint8_t *palette);
+
+/**
+ * Convert an 8-bit paletted frame into a frame with a color depth of 24 bits.
+ *
+ * With the palette format "ABCD", the destination frame ends up with the format "ABC".
+ *
+ * @param src        source frame buffer
+ * @param dst        destination frame buffer
+ * @param num_pixels number of pixels to convert
+ * @param palette    array with [256] entries, which must match color arrangement (RGB or BGR) of src
+ */
+void sws_convertPalette8ToPacked24(const uint8_t *src, uint8_t *dst, int num_pixels, const uint8_t *palette);
+
+/**
+ * Get the AVClass for swsContext. It can be used in combination with
+ * AV_OPT_SEARCH_FAKE_OBJ for examining options.
+ *
+ * @see av_opt_find().
+ */
+const AVClass *sws_get_class(void);
+
+
+/* libswresample/version.h */
+
+#define LIBSWRESAMPLE_VERSION_MAJOR   2
+#define LIBSWRESAMPLE_VERSION_MINOR   1
+#define LIBSWRESAMPLE_VERSION_MICRO 100
+
+
+/* libswresample/swresample.h */
+
+#define SWR_FLAG_RESAMPLE 1 ///< Force resampling even if equal sample rate
+//TODO use int resample ?
+//long term TODO can we enable this dynamically?
+
+/** Dithering algorithms */
+enum SwrDitherType {
+    SWR_DITHER_NONE = 0,
+    SWR_DITHER_RECTANGULAR,
+    SWR_DITHER_TRIANGULAR,
+    SWR_DITHER_TRIANGULAR_HIGHPASS,
+
+    SWR_DITHER_NS = 64,         ///< not part of API/ABI
+    SWR_DITHER_NS_LIPSHITZ,
+    SWR_DITHER_NS_F_WEIGHTED,
+    SWR_DITHER_NS_MODIFIED_E_WEIGHTED,
+    SWR_DITHER_NS_IMPROVED_E_WEIGHTED,
+    SWR_DITHER_NS_SHIBATA,
+    SWR_DITHER_NS_LOW_SHIBATA,
+    SWR_DITHER_NS_HIGH_SHIBATA,
+    SWR_DITHER_NB,              ///< not part of API/ABI
+};
+
+/** Resampling Engines */
+enum SwrEngine {
+    SWR_ENGINE_SWR,             /**< SW Resampler */
+    SWR_ENGINE_SOXR,            /**< SoX Resampler */
+    SWR_ENGINE_NB,              ///< not part of API/ABI
+};
+
+/** Resampling Filter Types */
+enum SwrFilterType {
+    SWR_FILTER_TYPE_CUBIC,              /**< Cubic */
+    SWR_FILTER_TYPE_BLACKMAN_NUTTALL,   /**< Blackman Nuttall windowed sinc */
+    SWR_FILTER_TYPE_KAISER,             /**< Kaiser windowed sinc */
+};
+
+/**
+ * @}
+ */
+
+/**
+ * The libswresample context. Unlike libavcodec and libavformat, this structure
+ * is opaque. This means that if you would like to set options, you must use
+ * the @ref avoptions API and cannot directly set values to members of the
+ * structure.
+ */
+typedef struct SwrContext SwrContext;
+
+/**
+ * Get the AVClass for SwrContext. It can be used in combination with
+ * AV_OPT_SEARCH_FAKE_OBJ for examining options.
+ *
+ * @see av_opt_find().
+ * @return the AVClass of SwrContext
+ */
+const AVClass *swr_get_class(void);
+
+/**
+ * @name SwrContext constructor functions
+ * @{
+ */
+
+/**
+ * Allocate SwrContext.
+ *
+ * If you use this function you will need to set the parameters (manually or
+ * with swr_alloc_set_opts()) before calling swr_init().
+ *
+ * @see swr_alloc_set_opts(), swr_init(), swr_free()
+ * @return NULL on error, allocated context otherwise
+ */
+struct SwrContext *swr_alloc(void);
+
+/**
+ * Initialize context after user parameters have been set.
+ * @note The context must be configured using the AVOption API.
+ *
+ * @see av_opt_set_int()
+ * @see av_opt_set_dict()
+ *
+ * @param[in,out]   s Swr context to initialize
+ * @return AVERROR error code in case of failure.
+ */
+int swr_init(struct SwrContext *s);
+
+/**
+ * Check whether an swr context has been initialized or not.
+ *
+ * @param[in]       s Swr context to check
+ * @see swr_init()
+ * @return positive if it has been initialized, 0 if not initialized
+ */
+int swr_is_initialized(struct SwrContext *s);
+
+/**
+ * Allocate SwrContext if needed and set/reset common parameters.
+ *
+ * This function does not require s to be allocated with swr_alloc(). On the
+ * other hand, swr_alloc() can use swr_alloc_set_opts() to set the parameters
+ * on the allocated context.
+ *
+ * @param s               existing Swr context if available, or NULL if not
+ * @param out_ch_layout   output channel layout (AV_CH_LAYOUT_*)
+ * @param out_sample_fmt  output sample format (AV_SAMPLE_FMT_*).
+ * @param out_sample_rate output sample rate (frequency in Hz)
+ * @param in_ch_layout    input channel layout (AV_CH_LAYOUT_*)
+ * @param in_sample_fmt   input sample format (AV_SAMPLE_FMT_*).
+ * @param in_sample_rate  input sample rate (frequency in Hz)
+ * @param log_offset      logging level offset
+ * @param log_ctx         parent logging context, can be NULL
+ *
+ * @see swr_init(), swr_free()
+ * @return NULL on error, allocated context otherwise
+ */
+struct SwrContext *swr_alloc_set_opts(struct SwrContext *s,
+                                      int64_t out_ch_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate,
+                                      int64_t  in_ch_layout, enum AVSampleFormat  in_sample_fmt, int  in_sample_rate,
+                                      int log_offset, void *log_ctx);
+
+/**
+ * @}
+ *
+ * @name SwrContext destructor functions
+ * @{
+ */
+
+/**
+ * Free the given SwrContext and set the pointer to NULL.
+ *
+ * @param[in] s a pointer to a pointer to Swr context
+ */
+void swr_free(struct SwrContext **s);
+
+/**
+ * Closes the context so that swr_is_initialized() returns 0.
+ *
+ * The context can be brought back to life by running swr_init(),
+ * swr_init() can also be used without swr_close().
+ * This function is mainly provided for simplifying the usecase
+ * where one tries to support libavresample and libswresample.
+ *
+ * @param[in,out] s Swr context to be closed
+ */
+void swr_close(struct SwrContext *s);
+
+/**
+ * @}
+ *
+ * @name Core conversion functions
+ * @{
+ */
+
+/** Convert audio.
+ *
+ * in and in_count can be set to 0 to flush the last few samples out at the
+ * end.
+ *
+ * If more input is provided than output space, then the input will be buffered.
+ * You can avoid this buffering by using swr_get_out_samples() to retrieve an
+ * upper bound on the required number of output samples for the given number of
+ * input samples. Conversion will run directly without copying whenever possible.
+ *
+ * @param s         allocated Swr context, with parameters set
+ * @param out       output buffers, only the first one need be set in case of packed audio
+ * @param out_count amount of space available for output in samples per channel
+ * @param in        input buffers, only the first one need to be set in case of packed audio
+ * @param in_count  number of input samples available in one channel
+ *
+ * @return number of samples output per channel, negative value on error
+ */
+int swr_convert(struct SwrContext *s, uint8_t **out, int out_count,
+                                const uint8_t **in , int in_count);
+
+/**
+ * Convert the next timestamp from input to output
+ * timestamps are in 1/(in_sample_rate * out_sample_rate) units.
+ *
+ * @note There are 2 slightly differently behaving modes.
+ *       @li When automatic timestamp compensation is not used, (min_compensation >= FLT_MAX)
+ *              in this case timestamps will be passed through with delays compensated
+ *       @li When automatic timestamp compensation is used, (min_compensation < FLT_MAX)
+ *              in this case the output timestamps will match output sample numbers.
+ *              See ffmpeg-resampler(1) for the two modes of compensation.
+ *
+ * @param s[in]     initialized Swr context
+ * @param pts[in]   timestamp for the next input sample, INT64_MIN if unknown
+ * @see swr_set_compensation(), swr_drop_output(), and swr_inject_silence() are
+ *      function used internally for timestamp compensation.
+ * @return the output timestamp for the next output sample
+ */
+int64_t swr_next_pts(struct SwrContext *s, int64_t pts);
+
+/**
+ * @}
+ *
+ * @name Low-level option setting functions
+ * These functons provide a means to set low-level options that is not possible
+ * with the AVOption API.
+ * @{
+ */
+
+/**
+ * Activate resampling compensation ("soft" compensation). This function is
+ * internally called when needed in swr_next_pts().
+ *
+ * @param[in,out] s             allocated Swr context. If it is not initialized,
+ *                              or SWR_FLAG_RESAMPLE is not set, swr_init() is
+ *                              called with the flag set.
+ * @param[in]     sample_delta  delta in PTS per sample
+ * @param[in]     compensation_distance number of samples to compensate for
+ * @return    >= 0 on success, AVERROR error codes if:
+ *            @li @c s is NULL,
+ *            @li @c compensation_distance is less than 0,
+ *            @li @c compensation_distance is 0 but sample_delta is not,
+ *            @li compensation unsupported by resampler, or
+ *            @li swr_init() fails when called.
+ */
+int swr_set_compensation(struct SwrContext *s, int sample_delta, int compensation_distance);
+
+/**
+ * Set a customized input channel mapping.
+ *
+ * @param[in,out] s           allocated Swr context, not yet initialized
+ * @param[in]     channel_map customized input channel mapping (array of channel
+ *                            indexes, -1 for a muted channel)
+ * @return >= 0 on success, or AVERROR error code in case of failure.
+ */
+int swr_set_channel_mapping(struct SwrContext *s, const int *channel_map);
+
+/**
+ * Set a customized remix matrix.
+ *
+ * @param s       allocated Swr context, not yet initialized
+ * @param matrix  remix coefficients; matrix[i + stride * o] is
+ *                the weight of input channel i in output channel o
+ * @param stride  offset between lines of the matrix
+ * @return  >= 0 on success, or AVERROR error code in case of failure.
+ */
+int swr_set_matrix(struct SwrContext *s, const double *matrix, int stride);
+
+/**
+ * @}
+ *
+ * @name Sample handling functions
+ * @{
+ */
+
+/**
+ * Drops the specified number of output samples.
+ *
+ * This function, along with swr_inject_silence(), is called by swr_next_pts()
+ * if needed for "hard" compensation.
+ *
+ * @param s     allocated Swr context
+ * @param count number of samples to be dropped
+ *
+ * @return >= 0 on success, or a negative AVERROR code on failure
+ */
+int swr_drop_output(struct SwrContext *s, int count);
+
+/**
+ * Injects the specified number of silence samples.
+ *
+ * This function, along with swr_drop_output(), is called by swr_next_pts()
+ * if needed for "hard" compensation.
+ *
+ * @param s     allocated Swr context
+ * @param count number of samples to be dropped
+ *
+ * @return >= 0 on success, or a negative AVERROR code on failure
+ */
+int swr_inject_silence(struct SwrContext *s, int count);
+
+/**
+ * Gets the delay the next input sample will experience relative to the next output sample.
+ *
+ * Swresample can buffer data if more input has been provided than available
+ * output space, also converting between sample rates needs a delay.
+ * This function returns the sum of all such delays.
+ * The exact delay is not necessarily an integer value in either input or
+ * output sample rate. Especially when downsampling by a large value, the
+ * output sample rate may be a poor choice to represent the delay, similarly
+ * for upsampling and the input sample rate.
+ *
+ * @param s     swr context
+ * @param base  timebase in which the returned delay will be:
+ *              @li if it's set to 1 the returned delay is in seconds
+ *              @li if it's set to 1000 the returned delay is in milliseconds
+ *              @li if it's set to the input sample rate then the returned
+ *                  delay is in input samples
+ *              @li if it's set to the output sample rate then the returned
+ *                  delay is in output samples
+ *              @li if it's the least common multiple of in_sample_rate and
+ *                  out_sample_rate then an exact rounding-free delay will be
+ *                  returned
+ * @returns     the delay in 1 / @c base units.
+ */
+int64_t swr_get_delay(struct SwrContext *s, int64_t base);
+
+/**
+ * Find an upper bound on the number of samples that the next swr_convert
+ * call will output, if called with in_samples of input samples. This
+ * depends on the internal state, and anything changing the internal state
+ * (like further swr_convert() calls) will may change the number of samples
+ * swr_get_out_samples() returns for the same number of input samples.
+ *
+ * @param in_samples    number of input samples.
+ * @note any call to swr_inject_silence(), swr_convert(), swr_next_pts()
+ *       or swr_set_compensation() invalidates this limit
+ * @note it is recommended to pass the correct available buffer size
+ *       to all functions like swr_convert() even if swr_get_out_samples()
+ *       indicates that less would be used.
+ * @returns an upper bound on the number of samples that the next swr_convert
+ *          will output or a negative value to indicate an error
+ */
+int swr_get_out_samples(struct SwrContext *s, int in_samples);
+
+/**
+ * @}
+ *
+ * @name Configuration accessors
+ * @{
+ */
+
+/**
+ * Return the @ref LIBSWRESAMPLE_VERSION_INT constant.
+ *
+ * This is useful to check if the build-time libswresample has the same version
+ * as the run-time one.
+ *
+ * @returns     the unsigned int-typed version
+ */
+unsigned swresample_version(void);
+
+/**
+ * Return the swr build-time configuration.
+ *
+ * @returns     the build-time @c ./configure flags
+ */
+const char *swresample_configuration(void);
+
+/**
+ * Return the swr license.
+ *
+ * @returns     the license of libswresample, determined at build-time
+ */
+const char *swresample_license(void);
+
+/**
+ * @}
+ *
+ * @name AVFrame based API
+ * @{
+ */
+
+/**
+ * Convert the samples in the input AVFrame and write them to the output AVFrame.
+ *
+ * Input and output AVFrames must have channel_layout, sample_rate and format set.
+ *
+ * If the output AVFrame does not have the data pointers allocated the nb_samples
+ * field will be set using av_frame_get_buffer()
+ * is called to allocate the frame.
+ *
+ * The output AVFrame can be NULL or have fewer allocated samples than required.
+ * In this case, any remaining samples not written to the output will be added
+ * to an internal FIFO buffer, to be returned at the next call to this function
+ * or to swr_convert().
+ *
+ * If converting sample rate, there may be data remaining in the internal
+ * resampling delay buffer. swr_get_delay() tells the number of
+ * remaining samples. To get this data as output, call this function or
+ * swr_convert() with NULL input.
+ *
+ * If the SwrContext configuration does not match the output and
+ * input AVFrame settings the conversion does not take place and depending on
+ * which AVFrame is not matching AVERROR_OUTPUT_CHANGED, AVERROR_INPUT_CHANGED
+ * or the result of a bitwise-OR of them is returned.
+ *
+ * @see swr_delay()
+ * @see swr_convert()
+ * @see swr_get_delay()
+ *
+ * @param swr             audio resample context
+ * @param output          output AVFrame
+ * @param input           input AVFrame
+ * @return                0 on success, AVERROR on failure or nonmatching
+ *                        configuration.
+ */
+int swr_convert_frame(SwrContext *swr,
+                      AVFrame *output, const AVFrame *input);
+
+/**
+ * Configure or reconfigure the SwrContext using the information
+ * provided by the AVFrames.
+ *
+ * The original resampling context is reset even on failure.
+ * The function calls swr_close() internally if the context is open.
+ *
+ * @see swr_close();
+ *
+ * @param swr             audio resample context
+ * @param output          output AVFrame
+ * @param input           input AVFrame
+ * @return                0 on success, AVERROR on failure.
+ */
+int swr_config_frame(SwrContext *swr, const AVFrame *out, const AVFrame *in);
+
 
 /* glue */
 
+struct AVFrame ** swig_create_frame_p_p(AVFrame * p);
+struct AVDictionary ** swig_create_dictionary_p_p();
 struct AVFormatContext ** swig_create_format_context_p_p();
 struct URLContext ** swig_create_url_context_p_p();
 
+struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p);
 struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p);
 struct URLContext * swig_get_url_context(struct URLContext ** p);
 
 struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
 
 int * swig_create_int_p();
-int swig_get_int(int * p);
+int swig_get_int(int * p, int index);
+void swig_set_int(int * p, int index, int value);
