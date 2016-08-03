@@ -27,25 +27,19 @@
 #include "libavutil/dict.h"
 #include "libavutil/imgutils.h"
 #include "libavcodec/avcodec.h"
-#include "libavformat/url.h"
 #include "libavformat/avformat.h"
+#include "libavformat/url.h"
 #include "libavfilter/avfilter.h"
 #include "libavdevice/avdevice.h"
 #include "libpostproc/postprocess.h"
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
 
-struct AVFrame ** swig_create_frame_p_p(AVFrame * p);
-struct AVDictionary ** swig_create_dictionary_p_p();
-struct AVFormatContext ** swig_create_format_context_p_p();
-struct URLContext ** swig_create_url_context_p_p();
-struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p);
-struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p);
-struct URLContext * swig_get_url_context(struct URLContext ** p);
 struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
-int * swig_create_int_p();
-int swig_get_int(int * p, int index);
-void swig_set_int(int * p, int index, int value);
+
+void ** swig_from_p_to_p_p(void * p);
+void * swig_from_p_p_to_p(void ** p);
+
 %}
 
 %javaconst(1);
@@ -84,24 +78,18 @@ void swig_set_int(int * p, int index, int value);
 
 %array_class(AVIOContext, AVIOContextArray);
 
-%extend AVFormatContext {
-   AVIOContext ** get_aviocontext_p_p() {
-    return &self->pb;
+%extend AVCPBProperties {
+   long size_of() {
+    return sizeof(AVCPBProperties);
    } 
 }
 
-%typemap(javacode) SWIGTYPE *, SWIGTYPE ** %{
+%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE ** %{
    public static final $javaclassname asTypePointer(SWIGTYPE_p_void p) {
-    return new $javaclassname(SWIGTYPE_p_void.getCPtr(p), false);
+      return new $javaclassname(SWIGTYPE_p_void.getCPtr(p), false);
    }
    public static final SWIGTYPE_p_void asVoidPointer($javaclassname p) {
-    return new SWIGTYPE_p_void($javaclassname.getCPtr(p), false);
-   }
-%} 
-
-%typemap(javacode) SWIGTYPE %{
-   public static final SWIGTYPE_p_void asVoidPointer($javaclassname p) {
-    return new SWIGTYPE_p_void($javaclassname.getCPtr(p), false);
+      return new SWIGTYPE_p_void($javaclassname.getCPtr(p), false);
    }
 %} 
 
@@ -165,50 +153,19 @@ void swig_set_int(int * p, int index, int value);
 
 %{
 
-struct AVFrame ** swig_create_frame_p_p(AVFrame * p) {
-   AVFrame ** d = (struct AVFrame **) av_mallocz(sizeof(struct AVFrame **));
-   *d = p;
-   return d;
+void ** swig_from_p_to_p_p(void * p) {
+    void ** q = av_mallocz(sizeof(void *));
+    *q = p;
+    return q;
 }
 
-struct AVDictionary ** swig_create_dictionary_p_p() {
-  return (struct AVDictionary **) av_mallocz(sizeof(struct AVDictionary **));
+void * swig_from_p_p_to_p(void ** p) {
+    void * q = *p;
+    return q;
 }
 
-struct AVFormatContext ** swig_create_format_context_p_p() {
-  return (struct AVFormatContext **) av_mallocz(sizeof(struct AVFormatContext **));
-}
-
-struct URLContext ** swig_create_url_context_p_p() {
-	return (struct URLContext **) av_mallocz(sizeof(struct URLContext **));
-}	
-
-struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p) {
-  return *p;
-}
-  
-struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p) {
-  return *p;
-}
-	
-struct URLContext * swig_get_url_context(struct URLContext ** p) {
-	return *p;
-}
-	
 struct AVStream * swig_get_stream_p(struct AVStream **streams, int index) {
     return streams[index];
-}
-
-int * swig_create_int_p() {
-  return (int *) av_malloc(sizeof(int *));
-}
-
-int swig_get_int(int * p, int index) {
-  return p[index];
-}
-
-void swig_set_int(int * p, int index, int value) {
-  p[index] = value;
 }
 
 SWIGEXPORT void JNICALL Java_com_nextbreakpoint_ffmpeg4java_FFmpeg4JavaJNI_swig_1get_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
@@ -13759,17 +13716,7 @@ int swr_config_frame(SwrContext *swr, const AVFrame *out, const AVFrame *in);
 
 /* glue */
 
-struct AVFrame ** swig_create_frame_p_p(AVFrame * p);
-struct AVDictionary ** swig_create_dictionary_p_p();
-struct AVFormatContext ** swig_create_format_context_p_p();
-struct URLContext ** swig_create_url_context_p_p();
-
-struct AVDictionary * swig_get_dictionary(struct AVDictionary ** p);
-struct AVFormatContext * swig_get_format_context(struct AVFormatContext ** p);
-struct URLContext * swig_get_url_context(struct URLContext ** p);
-
 struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
 
-int * swig_create_int_p();
-int swig_get_int(int * p, int index);
-void swig_set_int(int * p, int index, int value);
+void ** swig_from_p_to_p_p(void * p);
+void * swig_from_p_p_to_p(void ** p);
