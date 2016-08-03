@@ -39,7 +39,6 @@ struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
 
 void ** swig_from_p_to_p_p(void * p);
 void * swig_from_p_p_to_p(void ** p);
-
 %}
 
 %javaconst(1);
@@ -84,14 +83,27 @@ void * swig_from_p_p_to_p(void ** p);
    } 
 }
 
-%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE ** %{
-   public static final $javaclassname asTypePointer(SWIGTYPE_p_void p) {
+%typemap(javabody) SWIGTYPE, SWIGTYPE *, SWIGTYPE **, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+  private long swigCPtr;
+  private boolean swigCMemOwn;
+
+  public $javaclassname(long cPtr, boolean cMemOwn) {
+      swigCPtr = cPtr;
+      swigCMemOwn = cMemOwn;
+  }
+
+  public static long getCPtr($javaclassname obj) {
+      return (obj == null) ? 0 : obj.swigCPtr;
+  }
+  
+  public static final $javaclassname asTypePointer(SWIGTYPE_p_void p) {
       return new $javaclassname(SWIGTYPE_p_void.getCPtr(p), false);
-   }
-   public static final SWIGTYPE_p_void asVoidPointer($javaclassname p) {
+  }
+  
+  public static final SWIGTYPE_p_void asVoidPointer($javaclassname p) {
       return new SWIGTYPE_p_void($javaclassname.getCPtr(p), false);
-   }
-%} 
+  }
+%}
 
 %pragma(java) jniclasscode=%{
   public final static native void swig_set_bytes(long jarg1, SWIGTYPE_p_uint8_t jarg1_, byte[] jarg2);
