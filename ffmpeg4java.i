@@ -35,7 +35,7 @@
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
 
-struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
+typedef void * void_p;
 
 void ** swig_from_p_to_p_p(void * p);
 void * swig_from_p_p_to_p(void ** p);
@@ -75,7 +75,7 @@ void * swig_from_p_p_to_p(void ** p);
 %array_class(uint64_t, uint64Array);
 %array_class(signed char, byteArray);
 
-%array_class(AVIOContext, AVIOContextArray);
+%array_class(void_p, VoidPointerArray);
 
 %extend AVCPBProperties {
    long size_of() {
@@ -112,11 +112,11 @@ void * swig_from_p_p_to_p(void ** p);
 
 %pragma(java) modulecode=%{
   public static void swig_get_bytes(SWIGTYPE_p_uint8_t buffer, byte[] data) {
-	FFmpeg4JavaJNI.swig_get_bytes(SWIGTYPE_p_uint8_t.getCPtr(buffer), buffer, data);
+	 FFmpeg4JavaJNI.swig_get_bytes(SWIGTYPE_p_uint8_t.getCPtr(buffer), buffer, data);
   }
   
   public static void swig_set_bytes(SWIGTYPE_p_uint8_t buffer, byte[] data) {
-	FFmpeg4JavaJNI.swig_set_bytes(SWIGTYPE_p_uint8_t.getCPtr(buffer), buffer, data);
+	 FFmpeg4JavaJNI.swig_set_bytes(SWIGTYPE_p_uint8_t.getCPtr(buffer), buffer, data);
   }
 %}
 
@@ -125,22 +125,6 @@ void * swig_from_p_p_to_p(void ** p);
 		System.loadLibrary("ffmpeg4java");
 	}
 %}
-
-%typemap(in) int16_t (*motion_val[2])[2] %{
-    $1 = *(int16_t (***)[2])&$input;
-%} 
-
-%typemap(out) int16_t (*motion_val[2])[2] %{
-    *(int16_t (***)[2])&$result = $1;
-%} 
-
-%typemap(memberin) int16_t (*motion_val[2])[2] %{
-  {
-    size_t ii;
-    int16_t (**b)[2] = (int16_t (**)[2]) arg1->motion_val;
-    for (ii = 0; ii < (size_t)2; ii++) b[ii] = *((int16_t (**)[2]) arg2 + ii);
-  }
-%} 
 
 %typemap(javacode) AVAppToDevMessageType %{
     public static final int MKBETAG(char a, char b, char c, char d) {
@@ -162,7 +146,6 @@ void * swig_from_p_p_to_p(void ** p);
     }
 %} 
 
-
 %{
 
 void ** swig_from_p_to_p_p(void * p) {
@@ -174,10 +157,6 @@ void ** swig_from_p_to_p_p(void * p) {
 void * swig_from_p_p_to_p(void ** p) {
     void * q = *p;
     return q;
-}
-
-struct AVStream * swig_get_stream_p(struct AVStream **streams, int index) {
-    return streams[index];
 }
 
 SWIGEXPORT void JNICALL Java_com_nextbreakpoint_ffmpeg4java_FFmpeg4JavaJNI_swig_1get_1bytes(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
@@ -230,10 +209,18 @@ SWIGEXPORT void JNICALL Java_com_nextbreakpoint_ffmpeg4java_FFmpeg4JavaJNI_swig_
  
 %}
 
+/* glue */
+
+typedef void * void_p;
+
+void ** swig_from_p_to_p_p(void * p);
+void * swig_from_p_p_to_p(void ** p);
+
 #define av_const 
 #define av_warn_unused_result
 #define attribute_deprecated
 #define av_printf_format(x,y)
+
 
 /* libavutil/version.h */
 
@@ -13724,11 +13711,3 @@ int swr_convert_frame(SwrContext *swr,
  * @return                0 on success, AVERROR on failure.
  */
 int swr_config_frame(SwrContext *swr, const AVFrame *out, const AVFrame *in);
-
-
-/* glue */
-
-struct AVStream * swig_get_stream_p(struct AVStream **streams, int index);
-
-void ** swig_from_p_to_p_p(void * p);
-void * swig_from_p_p_to_p(void ** p);
