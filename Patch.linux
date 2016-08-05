@@ -1,13 +1,31 @@
+diff --git a/libavutil/dict.c b/libavutil/dict.c
+index f70c7e0..a53dc4a 100644
+--- /ffmpeg/libavutil/dict.c
++++ /ffmpeg/libavutil/dict.c
+@@ -26,11 +26,6 @@
+ #include "mem.h"
+ #include "bprint.h"
+ 
+-struct AVDictionary {
+-    int count;
+-    AVDictionaryEntry *elems;
+-};
+-
+ int av_dict_count(const AVDictionary *m)
+ {
+     return m ? m->count : 0;
 diff --git a/libavutil/dict.h b/libavutil/dict.h
-index 118f1f0..df4bd04 100644
+index 118f1f0..1659490 100644
 --- /ffmpeg/libavutil/dict.h
 +++ /ffmpeg/libavutil/dict.h
-@@ -83,7 +83,8 @@ typedef struct AVDictionaryEntry {
+@@ -83,7 +83,10 @@ typedef struct AVDictionaryEntry {
      char *value;
  } AVDictionaryEntry;
  
 -typedef struct AVDictionary AVDictionary;
 +typedef struct AVDictionary {
++    int count;
++    AVDictionaryEntry *elems;
 +} AVDictionary;
  
  /**

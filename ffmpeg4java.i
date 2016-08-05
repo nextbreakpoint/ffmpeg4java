@@ -853,6 +853,8 @@ typedef struct AVDictionaryEntry {
 } AVDictionaryEntry;
 
 typedef struct AVDictionary {
+    int count;
+    AVDictionaryEntry *elems;
 } AVDictionary;
 
 /**
