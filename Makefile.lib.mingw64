@@ -3,6 +3,6 @@ LIB_TYPE=64
 LIB_ARCH=x86_$(LIB_TYPE)
 
 ffmpeg:
-	./configure --cross-prefix=$(LIB_ARCH)-w64-mingw32- --extra-cflags=-m$(LIB_TYPE) --extra-ldflags=-m$(LIB_TYPE) --arch=$(LIB_ARCH) --enable-cross-compile --target-os=mingw32 --disable-mmx --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffserver --disable-ffprobe --enable-memalign-hack --enable-w32threads --enable-static --disable-shared --enable-pic && make
+	./configure --cross-prefix=$(LIB_ARCH)-w64-mingw32- --extra-cflags=-m$(LIB_TYPE) --extra-ldflags=-m$(LIB_TYPE) --arch=$(LIB_ARCH) --enable-cross-compile --target-os=mingw32 --disable-mmx --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffserver --disable-ffprobe --enable-memalign-hack --enable-w32threads --disable-shared --enable-pic --enable-static --disable-debug && make
 	
 
