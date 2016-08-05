@@ -6,8 +6,10 @@ rm -fR ffmpeg
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
 cp Makefile.lib.macos ffmpeg/Makefile.lib.macos
-
 cp Makefile.jni.macos ffmpeg/Makefile.jni.macos
+
+cp Patch.macos ffmpeg/Patch.macos
+patch -p0 < ffmpeg/Patch.macos
 
 cd ffmpeg
 

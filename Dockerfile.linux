@@ -7,6 +7,9 @@ RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 COPY Makefile.lib.linux ffmpeg/Makefile.lib.linux
 COPY Makefile.jni.linux ffmpeg/Makefile.jni.linux
 
+COPY Patch.linux ffmpeg/Patch.linux
+RUN patch -p0 < ffmpeg/Patch.linux
+
 COPY build-linux.sh build-linux.sh
 
 RUN chmod 700 build-linux.sh

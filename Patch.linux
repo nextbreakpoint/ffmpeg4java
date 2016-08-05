@@ -1,0 +1,14 @@
+diff --git a/libavutil/dict.h b/libavutil/dict.h
+index 118f1f0..df4bd04 100644
+--- /ffmpeg/libavutil/dict.h
++++ /ffmpeg/libavutil/dict.h
+@@ -83,7 +83,8 @@ typedef struct AVDictionaryEntry {
+     char *value;
+ } AVDictionaryEntry;
+ 
+-typedef struct AVDictionary AVDictionary;
++typedef struct AVDictionary {
++} AVDictionary;
+ 
+ /**
+  * Get a dictionary entry with matching key.
