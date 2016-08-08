@@ -1,11 +1,11 @@
-# ffmpeg4java
+# FFmpeg4Java
 
-ffmpeg4java provides a JNI wrapper of ffmpeg library.
+FFmpeg4Java provides a JNI wrapper of ffmpeg library.
 
 
 ## License
 
-ffmpeg4java is distributed under the terms of BSD 3-Clause License.
+FFmpeg4Java is distributed under the terms of BSD 3-Clause License.
 
     Copyright (c) 2016, Andrea Medeghini
     All rights reserved.
@@ -20,7 +20,7 @@ ffmpeg4java is distributed under the terms of BSD 3-Clause License.
         this list of conditions and the following disclaimer in the documentation
         and/or other materials provided with the distribution.
     
-    * Neither the name of ffmpeg4java nor the names of its
+    * Neither the name of FFmpeg4Java nor the names of its
         contributors may be used to endorse or promote products derived from
         this software without specific prior written permission.
     
@@ -38,7 +38,12 @@ ffmpeg4java is distributed under the terms of BSD 3-Clause License.
 
 ## Notice
 
-TODO
+FFmpeg4Java depends on FFmpeg library. See http://ffmpeg.org for details.
+
+FFmpeg is used under the terms of GNU Lesser General Public License, version 2.1.
+
+    FFmpeg library is statically linked with FFmpeg4Java's JNI library
+
 
 ## Generate JNI code
 
@@ -158,3 +163,9 @@ Run tests on Linux:
 Run tests on Windows:
 
     sh run-tests.sh -Pwin32
+
+
+## TODO
+
+- Add sample application to show how to use the library
+
