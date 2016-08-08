@@ -3,7 +3,7 @@ export BUILD_DIR=`pwd`/build
 
 rm -fR ffmpeg
 
-git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+git clone https://github.com/nextbreakpoint/FFmpeg.git ffmpeg
 
 cp Makefile.lib.macos ffmpeg/Makefile.lib.macos
 cp Makefile.jni.macos ffmpeg/Makefile.jni.macos
