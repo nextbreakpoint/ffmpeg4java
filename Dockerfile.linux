@@ -2,8 +2,8 @@ FROM ffmpeg4java-repo:latest
 
 RUN apt-get update && apt-get -y install make gcc g++
 
-COPY Makefile.lib.linux ffmpeg/Makefile.lib.linux
-COPY Makefile.jni.linux ffmpeg/Makefile.jni.linux
+COPY Makefile.lib.linux FFmpeg/Makefile.lib.linux
+COPY Makefile.jni.linux FFmpeg/Makefile.jni.linux
 
 COPY Patch.linux Patch.linux
 

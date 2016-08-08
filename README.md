@@ -69,7 +69,7 @@ The Java code will be generated in directory:
 
 The JNI code will be generated in file:
 
-    build/ffmpeg4java_wrap.cxx
+    build/ffmpeg4java_wrap.c
 
 
 ## Build library for MacOS

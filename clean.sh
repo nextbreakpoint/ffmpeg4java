@@ -2,4 +2,4 @@
 
 rm -fR build
 
-rm -fR ffmpeg
+rm -fR FFmpeg

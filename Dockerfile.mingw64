@@ -2,8 +2,8 @@ FROM ffmpeg4java-repo:latest
 
 RUN apt-get update && apt-get -y install make mingw-w64
 
-COPY Makefile.lib.mingw64 ffmpeg/Makefile.lib.mingw64
-COPY Makefile.jni.mingw64 ffmpeg/Makefile.jni.mingw64
+COPY Makefile.lib.mingw64 FFmpeg/Makefile.lib.mingw64
+COPY Makefile.jni.mingw64 FFmpeg/Makefile.jni.mingw64
 
 COPY Patch.mingw64 Patch.mingw64
 
