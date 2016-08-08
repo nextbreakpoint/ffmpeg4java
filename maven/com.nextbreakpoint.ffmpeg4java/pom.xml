@@ -5,8 +5,8 @@
 	<artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
-	<name>ffmpeg4java</name>
-	<description>ffmpeg4java provides a JNI wrapper of ffmpeg library</description>
+	<name>FFmpeg4Java</name>
+	<description>FFmpeg4Java provides a JNI wrapper of FFmpeg library</description>
 	<url>https://github.com/nextbreakpoint/ffmpeg4java</url>
 	<licenses>
 		<license>
