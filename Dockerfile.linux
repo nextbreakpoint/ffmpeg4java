@@ -5,7 +5,7 @@ RUN apt-get update && apt-get -y install make gcc g++
 COPY Makefile.lib.linux ffmpeg/Makefile.lib.linux
 COPY Makefile.jni.linux ffmpeg/Makefile.jni.linux
 
-COPY Patch.linux ffmpeg/Patch.linux
+COPY Patch.linux Patch.linux
 
 COPY build-linux.sh build-linux.sh
 

@@ -1,3 +1,5 @@
-FROM ffmpeg4java:latest
+FROM ffmpeg4java-base:latest
 
-RUN git clone https://github.com/nextbreakpoint/FFmpeg.git ffmpeg
+COPY checkout.sh checkout.sh
+
+RUN sh checkout.sh

@@ -93,6 +93,10 @@ We use docker for compiling Linux library.
 
     Generate JNI code before compiling library for Linux
 
+Create repository image:
+
+    sh create-image-repo.sh
+
 Create image for building library:
 
     sh create-image-linux.sh
@@ -111,6 +115,10 @@ The native library will be created in directory:
 We use docker for cross-compiling Windows library using Mingw-w64.
 
     Generate JNI code before compiling library for Windows
+
+Create repository image:
+
+    sh create-image-repo.sh
 
 Create image for building library:
 

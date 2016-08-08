@@ -1,4 +1,4 @@
-FROM ffmpeg4java:latest
+FROM ffmpeg4java-base:latest
 
 COPY ffmpeg4java.i ffmpeg4java.i 
 

@@ -1,3 +1,3 @@
 #/bin/sh
 
-docker build -t ffmpeg4java -f Dockerfile.base .
+docker build -t ffmpeg4java-base -f Dockerfile.base .
