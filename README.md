@@ -1,6 +1,6 @@
 # FFmpeg4Java
 
-FFmpeg4Java provides a JNI wrapper of ffmpeg library.
+FFmpeg4Java provides a JNI wrapper of FFmpeg library.
 
 
 ## License
