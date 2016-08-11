@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.nextbreakpoint</groupId>
 	<artifactId>com.nextbreakpoint.ffmpeg4java.tests</artifactId>
-	<version>1.0.0</version>
+	<version>3.1.1-1.0</version>
 	<packaging>jar</packaging>
 	<name>Tests of FFmpeg4Java</name>
 	<description>FFmpeg4Java provides a JNI wrapper of FFmpeg library</description>
@@ -66,7 +66,6 @@
 								<artifactItem>
 									<groupId>com.nextbreakpoint</groupId>
 									<artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-									<version>1.0.0</version>
 									<classifier>${build.type}</classifier>
 									<type>jar</type>
 									<overWrite>true</overWrite>
@@ -83,7 +82,7 @@
 		<dependency>
 			<groupId>com.nextbreakpoint</groupId>
 			<artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-			<version>1.0.0</version>
+			<version>3.1.1-1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
