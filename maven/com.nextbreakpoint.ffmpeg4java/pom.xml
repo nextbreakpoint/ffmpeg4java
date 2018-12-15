@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.nextbreakpoint</groupId>
 	<artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-	<version>3.1.1-1.0</version>
+	<version>3.1.1-1.1</version>
 	<packaging>jar</packaging>
 	<name>FFmpeg4Java</name>
 	<description>FFmpeg4Java provides a JNI wrapper of FFmpeg library</description>
@@ -68,13 +68,28 @@
 			<plugin>
 		        <groupId>org.apache.maven.plugins</groupId>
 		        <artifactId>maven-jar-plugin</artifactId>
-		        <version>3.0.2</version>
-	            <configuration>
-	              	<includes>
-	            		<include>**/*.class</include>
-	              	</includes>
-	            </configuration>
+		        <version>3.1.0</version>
 		        <executions>
+							<execution>
+			        	<id>jar</id>
+			            <phase>package</phase>
+			            <goals>
+			            	<goal>jar</goal>
+			            </goals>
+			            <configuration>
+											<archive>
+									      <manifestEntries>
+									        <Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java</Automatic-Module-Name>
+									      </manifestEntries>
+									    </archive>
+											<classifier>classes</classifier>
+			              	<excludes>
+			              	</excludes>
+			              	<includes>
+												<include>**/*.class</include>
+			              	</includes>
+			            </configuration>
+			        </execution>
 			        <execution>
 			        	<id>linux</id>
 			            <phase>package</phase>
@@ -82,11 +97,16 @@
 			            	<goal>jar</goal>
 			            </goals>
 			            <configuration>
+											<archive>
+												<manifestEntries>
+													<Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.linux</Automatic-Module-Name>
+												</manifestEntries>
+											</archive>
 			              	<classifier>linux_x86_64</classifier>
 			              	<excludes>
 			              	</excludes>
 			              	<includes>
-			            		<include>**/linux/*</include>
+			            			<include>**/linux/*</include>
 			              	</includes>
 			            </configuration>
 			        </execution>
@@ -97,11 +117,16 @@
 			            	<goal>jar</goal>
 			            </goals>
 			            <configuration>
+											<archive>
+												<manifestEntries>
+													<Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.macos</Automatic-Module-Name>
+												</manifestEntries>
+											</archive>
 			              	<classifier>macos_x86_64</classifier>
 			              	<excludes>
 			              	</excludes>
 			              	<includes>
-			            		<include>**/macos/*</include>
+			            			<include>**/macos/*</include>
 			              	</includes>
 			            </configuration>
 		          	</execution>
@@ -112,11 +137,16 @@
 			            	<goal>jar</goal>
 			            </goals>
 			            <configuration>
+											<archive>
+												<manifestEntries>
+													<Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.win32</Automatic-Module-Name>
+												</manifestEntries>
+											</archive>
 			              	<classifier>win32_x86_64</classifier>
 			              	<excludes>
 			              	</excludes>
 			              	<includes>
-			            		<include>**/win32/*</include>
+			            			<include>**/win32/*</include>
 			              	</includes>
 			            </configuration>
 		          	</execution>
@@ -138,7 +168,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
+						<version>1.6</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
