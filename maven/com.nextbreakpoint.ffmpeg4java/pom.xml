@@ -69,29 +69,21 @@
 		        <groupId>org.apache.maven.plugins</groupId>
 		        <artifactId>maven-jar-plugin</artifactId>
 		        <version>3.1.0</version>
+						<configuration>
+								<archive>
+									<manifestEntries>
+										<Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java</Automatic-Module-Name>
+									</manifestEntries>
+								</archive>
+								<excludes>
+								</excludes>
+								<includes>
+									<include>**/*.class</include>
+								</includes>
+						</configuration>
 		        <executions>
-							<execution>
-			        	<id>jar</id>
-			            <phase>package</phase>
-			            <goals>
-			            	<goal>jar</goal>
-			            </goals>
-			            <configuration>
-											<archive>
-									      <manifestEntries>
-									        <Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java</Automatic-Module-Name>
-									      </manifestEntries>
-									    </archive>
-											<classifier>classes</classifier>
-			              	<excludes>
-			              	</excludes>
-			              	<includes>
-												<include>**/*.class</include>
-			              	</includes>
-			            </configuration>
-			        </execution>
 			        <execution>
-			        	<id>linux</id>
+			        		<id>linux</id>
 			            <phase>package</phase>
 			            <goals>
 			            	<goal>jar</goal>
@@ -111,7 +103,7 @@
 			            </configuration>
 			        </execution>
 		          	<execution>
-			        	<id>macos</id>
+			        		<id>macos</id>
 			            <phase>package</phase>
 			            <goals>
 			            	<goal>jar</goal>
@@ -131,7 +123,7 @@
 			            </configuration>
 		          	</execution>
 		          	<execution>
-			        	<id>win32</id>
+			        		<id>win32</id>
 			            <phase>package</phase>
 			            <goals>
 			            	<goal>jar</goal>
