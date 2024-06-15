@@ -1,0 +1,3 @@
+export JAVA_HOME='/Library/Java/JavaVirtualMachines/temurin-22.jdk/Contents/Home'
+export JEXTRACT_HOME='/Users/andrea/Documents/tools/jextract-22'
+export PATH=$PATH:$JAVA_HOME/bin:$JEXTRACT_HOME/bin
