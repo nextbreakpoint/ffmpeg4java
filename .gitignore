@@ -1,4 +1,3 @@
-build
 *.iml
 .idea
 /ffmpeg4java-macos-test/test-frame-10.png
