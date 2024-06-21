@@ -21,4 +21,4 @@ install:
 	./scripts/copy.sh $(INSTALL_PATH)
 
 .PHONY: all
-all: checkout compile install
+all: checkout configure compile install
