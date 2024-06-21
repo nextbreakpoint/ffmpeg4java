@@ -1,5 +1,0 @@
-FROM ffmpeg4java-base:latest
-
-COPY checkout.sh checkout.sh
-
-RUN sh checkout.sh
