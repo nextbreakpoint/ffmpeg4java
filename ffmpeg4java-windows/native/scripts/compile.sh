@@ -21,6 +21,7 @@ x86_64-w64-mingw32-gcc --verbose \
   -fpic \
   -Wl,--out-implib=ffmpeg4java.dll.a \
   -Wl,-add-stdcall-alias \
+  -Wl,--no-undefined \
   -Wl,-Bsymbolic \
   -Wl,--whole-archive \
    libavformat/libavformat.a \
