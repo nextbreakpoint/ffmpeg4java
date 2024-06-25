@@ -45,19 +45,20 @@ You should have received a copy of the LGPL v2.1 license with FFmpeg4Java. See h
 
 # Reference
 
-https://github.com/openjdk/jextract/blob/master/samples/libffmpeg/LibffmpegMain.java
-https://github.com/FFmpeg/FFmpeg/blob/master/INSTALL.md
-https://ffmpeg.org/doxygen/trunk/structAVStream.html
-https://ffmpeg.org/doxygen/trunk/group__lavc__core.html
-http://dranger.com/ffmpeg/tutorial01.html
+Java Foreign Function and Memory API:
+https://openjdk.org/jeps/454
 
-https://github.com/openjdk/jextract/blob/master/doc/GUIDE.md#library-loading
-https://openjdk.org/jeps/442
-https://github.com/openjdk/jextract/blob/master/doc/GUIDE.md
+jextract download:
 https://jdk.java.net/jextract/
 
-https://central.sonatype.org/publish/generate-token/
+jextract guide:
+https://github.com/openjdk/jextract/blob/master/doc/GUIDE.md
 
+FFmpeg documentation:
+https://ffmpeg.org/documentation.html
+
+FFmpeg source code:
+https://ffmpeg.org/download.html#get-sources
+
+FFmpeg build notes:
 https://ffmpeg.org/platform.html
-
-https://jacobpan3g.github.io/2017/09/01/build-dylib-on-mac/
