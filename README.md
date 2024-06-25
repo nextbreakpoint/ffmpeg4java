@@ -38,11 +38,10 @@ FFmpeg4Java is distributed under the terms of BSD 3-Clause License.
 
 ## Notice
 
-FFmpeg4Java depends on FFmpeg library. See http://ffmpeg.org for details.
+FFmpeg4Java is distributed as JAR file which contains Java classes and a native library. The native library must be installed in the library path of the Java runtime.   
+Please note that the native library is statically liked with FFmpeg library under the terms of GNU Lesser General Public License, version 2.1. 
+You should have received a copy of the LGPL v2.1 license with FFmpeg4Java. See http://ffmpeg.org for more information about FFmpeg.
 
-FFmpeg library is statically linked with FFmpeg4Java library under the terms of GNU Lesser General Public License, version 2.1.
-
-    
 
 # Reference
 
