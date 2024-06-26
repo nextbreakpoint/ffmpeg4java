@@ -52,7 +52,7 @@
                                     <Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.linux</Automatic-Module-Name>
                                 </manifestEntries>
                             </archive>
-                            <classifier>linux_x86_64</classifier>
+                            <classifier>x86_64</classifier>
                             <excludes>
                             </excludes>
                             <includes>

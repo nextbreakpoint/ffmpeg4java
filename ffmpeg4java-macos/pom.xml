@@ -52,7 +52,7 @@
                                     <Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.macos</Automatic-Module-Name>
                                 </manifestEntries>
                             </archive>
-                            <classifier>macos_x86_64</classifier>
+                            <classifier>x86_64</classifier>
                             <includes>
                                 <include>**/*.class</include>
                                 <include>**/*.dylib</include>
