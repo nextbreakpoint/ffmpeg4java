@@ -25,8 +25,8 @@ all: build-lib install
 
 .PHONY: build-image
 build-image:
-	docker build -t ffmpeg4java-linux .
+	docker build -t ffmpeg4java-windows .
 
 .PHONY: build-lib
 build-lib: build-image
-	docker run --rm -i -v $(CURDIR):/var/native ffmpeg4java-linux make checkout configure compile
+	docker run --rm -i -v $(CURDIR):/var/native ffmpeg4java-windows make checkout configure compile
