@@ -43,6 +43,148 @@ Please note that the native library is statically liked with FFmpeg library unde
 You should have received a copy of the LGPL v2.1 license with FFmpeg4Java. See http://ffmpeg.org for more information about FFmpeg.
 
 
+## Binary distribution 
+
+FFmpeg4Java is available in Maven Central Repository and [GitHub](https://github.com/nextbreakpoint/ffmpeg4java).
+
+If you are using Maven, add one of the following dependencies in your POM:
+
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmepg4java.macos</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmepg4java.linux</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmepg4java.windows</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+
+
+## Build
+
+We recommend to use a Mac to build FFmpeg4Java because you can compile the library for all systems in one place, but that is not required. 
+A Linux system con be used to compile the library for Linux and Windows (via cross compilation). You will need a Mac only to compile the library for MacOS. 
+
+We assume you have a Mac, however the same instructions work for Linux. 
+Make sue you have installed Xcode command line tools and Docker (or just Docker if you are on Linux).
+We use Docker to simplify the toolchain configuration and ensure to have a consistent environment.
+
+## Build the library for MacOS
+
+Compile and install the library:
+
+    make -C ffmpeg4java-macos/native build-lib install
+
+The library will be installed in the resources directory of the module:
+
+    ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
+
+Inspect the symbols exported by the library:
+
+    nm -gU ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
+
+Inspect the libraries linked with the library: 
+
+    otool -L ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
+
+## Build the library for Linux
+
+Compile and install the library:
+
+    make -C ffmpeg4java-linux/native build-lib install
+
+The library will be installed in the resources directory of the module:
+
+    ffmpeg4java-linux/src/main/resources/libffmpeg4java.so
+
+Inspect the symbols exported by the library:
+
+    objdump -t ffmpeg4java-linux/src/main/resources/libffmpeg4java.so
+
+Inspect the libraries linked with the library:
+
+    objdump -p ffmpeg4java-linux/src/main/resources/libffmpeg4java.so | grep .so
+
+## Build the library for Windows
+
+Compile and install the library:
+
+    make -C ffmpeg4java-windows/native build-lib install
+
+The library will be installed in the resources directory of the module:
+
+    ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll
+
+Inspect the symbols exported by the library:
+
+    objdump -t ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll
+
+Inspect the libraries linked with the library:
+
+    objdump -p ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll | grep .dll
+
+## Build the Java code
+
+Compile and package the JARs:
+
+    make package
+
+The artifacts will be created in the target directory of each module:
+
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64.jar
+
+Install the artifacts in your local Maven repository:
+
+    make install
+
+## Test the Java code
+
+Test the MacOS module (must be executed on MacOS):
+
+    make verify system=macos
+
+Test the Linux module (must be executed on Linux):
+
+    make verify system=linux
+
+Test the Windows module (must be executed on Windows):
+
+    make verify system=windows
+
+## Generate Java code
+
+The Java code of all modules is generated from the FFmpeg header files by jextract.  
+
+Download and install jextract for Java 22 for all target systems (see links below). 
+
+Edit the source file in the target module with the correct path of jextract and java.   
+
+Generate the code for MacOS (must be executed on MacOS):
+
+    eval $(cat ffmpeg4java-macos/source) && make extract system=macos
+
+Generate the code for Linux (must be executed on Linux):
+
+    eval $(cat ffmpeg4java-linux/source) && make extract system=linux
+
+Generate the code for Windows (must be executed on Windows):
+
+    eval $(cat ffmpeg4java-windows/source) && make extract system=windows
+
+## Examples
+
+See the code of the tests for an example of how to use the wrapper. 
+
 # Reference
 
 Java Foreign Function and Memory API:
