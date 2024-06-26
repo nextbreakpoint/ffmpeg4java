@@ -51,19 +51,19 @@ If you are using Maven, add one of the following dependencies in your POM:
 
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.ffmepg4java.macos</artifactId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.macos</artifactId>
         <version>7.0.1-1.0</version>
     </dependency>
     
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.ffmepg4java.linux</artifactId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.linux</artifactId>
         <version>7.0.1-1.0</version>
     </dependency>
     
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.ffmepg4java.windows</artifactId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
         <version>7.0.1-1.0</version>
     </dependency>
 
@@ -135,7 +135,7 @@ Inspect the libraries linked with the library:
 
 Compile and package the JARs:
 
-    make package
+    make clean package
 
 The artifacts will be created in the target directory of each module:
 
@@ -181,9 +181,11 @@ Generate the code for Windows (must be executed on Windows):
 
     eval $(cat ffmpeg4java-windows/source) && make extract system=windows
 
-## Examples
+
+# Examples
 
 See the code of the tests for an example of how to use the wrapper. 
+
 
 # Reference
 
