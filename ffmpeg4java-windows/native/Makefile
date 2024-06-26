@@ -1,4 +1,4 @@
-INSTALL_PATH := $(PWD)/../src/main/resources
+INSTALL_PATH := $(CURDIR)/../src/main/resources
 
 .PHONY: checkout
 checkout:
@@ -21,12 +21,12 @@ install:
 	./scripts/copy.sh $(INSTALL_PATH)
 
 .PHONY: all
-all: checkout configure compile install
+all: build-lib install
 
 .PHONY: build-image
 build-image:
 	docker build -t ffmpeg4java-linux .
 
 .PHONY: build-lib
-build-lib:
-	docker run --rm -i -v $(PWD):/var/native ffmpeg4java-linux make compile
+build-lib: build-image
+	docker run --rm -i -v $(CURDIR):/var/native ffmpeg4java-linux make checkout configure compile
