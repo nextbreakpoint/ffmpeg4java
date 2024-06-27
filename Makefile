@@ -24,6 +24,11 @@ extract:
 verify:
 	test $(system)
 	@echo System = $(system)
-	#MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Xlog:library -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=true" mvn verify -P$(system)
-	MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=false" mvn verify -P$(system)
+	#MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=false -Xlog:library" mvn verify -P$(system)
+	MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=false $(properties)" mvn verify -P$(system)
 
+.PHONY: copy-legal
+copy-legal:
+	cp legal/*.txt ffmpeg4java-macos/src/main/resources/META-INF/
+	cp legal/*.txt ffmpeg4java-linux/src/main/resources/META-INF/
+	cp legal/*.txt ffmpeg4java-windows/src/main/resources/META-INF/
