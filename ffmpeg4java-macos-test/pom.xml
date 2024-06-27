@@ -34,6 +34,7 @@
                                 <artifactItem>
                                     <groupId>com.nextbreakpoint</groupId>
                                     <artifactId>com.nextbreakpoint.ffmpeg4java.macos</artifactId>
+                                    <classifier>x86_64</classifier>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/lib</outputDirectory>

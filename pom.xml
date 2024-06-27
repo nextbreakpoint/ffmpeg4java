@@ -194,6 +194,16 @@
                 </dependencies>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*.class</include>
+                        <include>**/*.txt</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
                 <configuration>
@@ -317,9 +327,8 @@
         <profile>
             <id>windows</id>
             <properties>
-                <build.type>win32_x86_64</build.type>
                 <arch.type>x86_64</arch.type>
-                <os.type>win32</os.type>
+                <os.type>windows</os.type>
             </properties>
             <modules>
                 <module>ffmpeg4java-windows-test</module>
@@ -328,7 +337,6 @@
         <profile>
             <id>linux</id>
             <properties>
-                <build.type>linux_x86_64</build.type>
                 <arch.type>x86_64</arch.type>
                 <os.type>linux</os.type>
             </properties>
@@ -339,7 +347,6 @@
         <profile>
             <id>macos</id>
             <properties>
-                <build.type>macos_x86_64</build.type>
                 <arch.type>x86_64</arch.type>
                 <os.type>macos</os.type>
             </properties>

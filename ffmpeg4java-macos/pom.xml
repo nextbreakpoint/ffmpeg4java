@@ -41,22 +41,20 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>macos</id>
+                        <id>native</id>
                         <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Automatic-Module-Name>com.nextbreakpoint.ffmpeg4java.macos</Automatic-Module-Name>
-                                </manifestEntries>
-                            </archive>
                             <classifier>x86_64</classifier>
                             <includes>
-                                <include>**/*.class</include>
                                 <include>**/*.dylib</include>
+                                <include>**/*.txt</include>
                             </includes>
+                            <excludes>
+                                <exclude>**/*.class</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
