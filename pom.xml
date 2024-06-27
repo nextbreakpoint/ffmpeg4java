@@ -332,6 +332,7 @@
             </properties>
             <modules>
                 <module>ffmpeg4java-windows-test</module>
+                <module>ffmpeg4java-windows-examples</module>
             </modules>
         </profile>
         <profile>
@@ -342,6 +343,7 @@
             </properties>
             <modules>
                 <module>ffmpeg4java-linux-test</module>
+                <module>ffmpeg4java-linux-examples</module>
             </modules>
         </profile>
         <profile>
@@ -352,6 +354,7 @@
             </properties>
             <modules>
                 <module>ffmpeg4java-macos-test</module>
+                <module>ffmpeg4java-macos-examples</module>
             </modules>
         </profile>
     </profiles>

@@ -1,0 +1,62 @@
+package com.nextbreakpoint.ffmpeg4java.macos;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.util.function.BiConsumer;
+
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_alloc_context3;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_close;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_open2;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_parameters_from_context;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_parameters_to_context;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_receive_frame;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_receive_packet;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_send_frame;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.avcodec_send_packet;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.sws_freeContext;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.sws_getCachedContext;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg.sws_scale;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.AV_CODEC_ID_NONE;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.AV_PKT_DATA_CPB_PROPERTIES;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_dump_format;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_frame_alloc;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_guess_format;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_packet_alloc;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_packet_rescale_ts;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_packet_unref;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_read_frame;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_stream_new_side_data;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_write_frame;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.av_write_trailer;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avcodec_find_decoder;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avcodec_find_encoder;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_alloc_context;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_close_input;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_find_stream_info;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_free_context;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_new_stream;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_open_input;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avformat_write_header;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avio_close;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_1.avio_open2;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.AVIO_FLAG_WRITE;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.AVMEDIA_TYPE_VIDEO;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.AV_PIX_FMT_RGB24;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.AV_PIX_FMT_YUV420P;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.C_POINTER;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.SWS_BILINEAR;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.av_free;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.av_image_alloc;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.av_image_fill_arrays;
+import static com.nextbreakpoint.ffmpeg4java.macos.Libffmpeg_2.av_image_get_buffer_size;
+import static java.lang.foreign.MemorySegment.NULL;
+
+class GenerateVideo {
+}
