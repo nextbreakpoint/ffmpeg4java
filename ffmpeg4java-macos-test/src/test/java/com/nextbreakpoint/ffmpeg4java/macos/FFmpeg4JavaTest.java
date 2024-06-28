@@ -110,40 +110,40 @@ class FFmpeg4JavaTest {
         int frameCount = 0;
 
         try (var arena = Arena.ofConfined()) {
-            var ppFormatCtx = NULL;
-            var pCodecCtx = NULL;
-            var pRGBFrame = NULL;
-            var pYUVFrame = NULL;
-            var pSwsContext = NULL;
-            var pRGBBuffer = NULL;
-            var pPacket = NULL;
+            var ppInputFormatCtx = NULL;
+            var pInputCodecCtx = NULL;
+            var pInputRGBFrame = NULL;
+            var pInputYUVFrame = NULL;
+            var pInputSwsContext = NULL;
+            var pInputRGBBuffer = NULL;
+            var pInputPacket = NULL;
 
             try {
-                ppFormatCtx = arena.allocate(C_POINTER);
+                ppInputFormatCtx = arena.allocate(C_POINTER);
 
-                final var inputFileName = arena.allocateFrom(fileName);
+                final var pInputFileName = arena.allocateFrom(fileName);
 
-                if (avformat_open_input(ppFormatCtx, inputFileName, NULL, NULL) != 0) {
+                if (avformat_open_input(ppInputFormatCtx, pInputFileName, NULL, NULL) != 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't open file"));
                 }
 
-                final var pFormatCtx = ppFormatCtx.get(C_POINTER, 0);
+                final var pFormatCtx = ppInputFormatCtx.get(C_POINTER, 0);
 
                 if (avformat_find_stream_info(pFormatCtx, NULL) != 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't find stream info"));
                 }
 
-                av_dump_format(pFormatCtx, 0, inputFileName, 0);
+                av_dump_format(pFormatCtx, 0, pInputFileName, 0);
 
                 final int nbStreams = AVFormatContext.nb_streams(pFormatCtx);
-                final var pStreams = AVFormatContext.streams(pFormatCtx);
+                final var pInputStreams = AVFormatContext.streams(pFormatCtx);
 
-                var pCodecParameters = NULL;
+                var pInputCodecParameters = NULL;
                 int videoStreamIndex = -1;
-                var pCodec = NULL;
+                var pInputCodec = NULL;
 
                 for (int i = 0; i < nbStreams; i++) {
-                    final var pStream = pStreams.getAtIndex(C_POINTER, i);
+                    final var pStream = pInputStreams.getAtIndex(C_POINTER, i);
 
                     final var pVideoCodecParameters = AVStream.codecpar(pStream);
 
@@ -151,8 +151,8 @@ class FFmpeg4JavaTest {
 
                     if (codecType == AVMEDIA_TYPE_VIDEO()) {
                         videoStreamIndex = i;
-                        pCodecParameters = pVideoCodecParameters;
-                        pCodec = avcodec_find_decoder(AVCodecParameters.codec_id(pVideoCodecParameters));
+                        pInputCodecParameters = pVideoCodecParameters;
+                        pInputCodec = avcodec_find_decoder(AVCodecParameters.codec_id(pVideoCodecParameters));
                         break;
                     }
                 }
@@ -161,58 +161,58 @@ class FFmpeg4JavaTest {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't find video stream"));
                 }
 
-                if (pCodec.equals(NULL)) {
+                if (pInputCodec.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't find codec"));
                 }
 
-                pCodecCtx = avcodec_alloc_context3(pCodec);
+                pInputCodecCtx = avcodec_alloc_context3(pInputCodec);
 
-                if (avcodec_parameters_to_context(pCodecCtx, pCodecParameters) != 0) {
+                if (avcodec_parameters_to_context(pInputCodecCtx, pInputCodecParameters) != 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't copy codec parameters"));
                 }
 
-                if (pCodecCtx.equals(NULL)) {
+                if (pInputCodecCtx.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate codec context"));
                 }
 
-                if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
+                if (avcodec_open2(pInputCodecCtx, pInputCodec, NULL) < 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't open codec"));
                 }
 
-                final int frameWidth = AVCodecContext.width(pCodecCtx);
-                final int frameHeight = AVCodecContext.height(pCodecCtx);
-                final int pixelFormat = AVCodecContext.pix_fmt(pCodecCtx);
+                final int frameWidth = AVCodecContext.width(pInputCodecCtx);
+                final int frameHeight = AVCodecContext.height(pInputCodecCtx);
+                final int pixelFormat = AVCodecContext.pix_fmt(pInputCodecCtx);
 
-                pSwsContext = sws_getCachedContext(NULL, frameWidth, frameHeight, pixelFormat, frameWidth, frameHeight, AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
+                pInputSwsContext = sws_getCachedContext(NULL, frameWidth, frameHeight, pixelFormat, frameWidth, frameHeight, AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
 
-                if (pSwsContext.equals(NULL)) {
+                if (pInputSwsContext.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate scale context"));
                 }
 
-                pRGBFrame = av_frame_alloc();
-                pYUVFrame = av_frame_alloc();
+                pInputRGBFrame = av_frame_alloc();
+                pInputYUVFrame = av_frame_alloc();
 
-                if (pRGBFrame.equals(NULL)) {
+                if (pInputRGBFrame.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate RGB frame"));
                 }
 
-                if (pYUVFrame.equals(NULL)) {
+                if (pInputYUVFrame.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate YUV frame"));
                 }
 
                 final int rgbByteSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
 
-                pRGBBuffer = arena.allocate(ValueLayout.OfByte.JAVA_BYTE, rgbByteSize);
+                pInputRGBBuffer = arena.allocate(ValueLayout.OfByte.JAVA_BYTE, rgbByteSize);
 
-                if (pRGBBuffer.equals(NULL)) {
+                if (pInputRGBBuffer.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate RGB buffer"));
                 }
 
-                av_image_fill_arrays(AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame), pRGBBuffer, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
+                av_image_fill_arrays(AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame), pInputRGBBuffer, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
 
-                pPacket = av_packet_alloc();
+                pInputPacket = av_packet_alloc();
 
-                if (pPacket.equals(NULL)) {
+                if (pInputPacket.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate packet"));
                 }
 
@@ -222,14 +222,14 @@ class FFmpeg4JavaTest {
 
                 final byte[] buffer = new byte[rgbByteSize];
 
-                while (av_read_frame(pFormatCtx, pPacket) == 0) {
-                    if (AVPacket.stream_index(pPacket) == videoStreamIndex) {
-                        if (avcodec_send_packet(pCodecCtx, pPacket) == 0) {
-                            while (avcodec_receive_frame(pCodecCtx, pYUVFrame) == 0) {
-                                sws_scale(pSwsContext, AVFrame.data(pYUVFrame), AVFrame.linesize(pYUVFrame), 0, frameHeight, AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame));
+                while (av_read_frame(pFormatCtx, pInputPacket) == 0) {
+                    if (AVPacket.stream_index(pInputPacket) == videoStreamIndex) {
+                        if (avcodec_send_packet(pInputCodecCtx, pInputPacket) == 0) {
+                            while (avcodec_receive_frame(pInputCodecCtx, pInputYUVFrame) == 0) {
+                                sws_scale(pInputSwsContext, AVFrame.data(pInputYUVFrame), AVFrame.linesize(pInputYUVFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
 
-                                var pData = AVFrame.data(pRGBFrame);
-                                MemorySegment.copy(pData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
+                                final var pInputData = AVFrame.data(pInputRGBFrame);
+                                MemorySegment.copy(pInputData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
 
                                 consumer.accept(++frameCount, buffer);
                             }
@@ -237,39 +237,39 @@ class FFmpeg4JavaTest {
                     }
                 }
 
-                if (avcodec_send_packet(pCodecCtx, NULL) == 0) {
-                    while (avcodec_receive_frame(pCodecCtx, pYUVFrame) == 0) {
-                        sws_scale(pSwsContext, AVFrame.data(pYUVFrame), AVFrame.linesize(pYUVFrame), 0, frameHeight, AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame));
+                if (avcodec_send_packet(pInputCodecCtx, NULL) == 0) {
+                    while (avcodec_receive_frame(pInputCodecCtx, pInputYUVFrame) == 0) {
+                        sws_scale(pInputSwsContext, AVFrame.data(pInputYUVFrame), AVFrame.linesize(pInputYUVFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
 
-                        var pData = AVFrame.data(pRGBFrame);
-                        MemorySegment.copy(pData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
+                        final var pInputData = AVFrame.data(pInputRGBFrame);
+                        MemorySegment.copy(pInputData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
 
                         consumer.accept(++frameCount, buffer);
                     }
                 }
             } catch (Exception e) {
-                if (!pCodecCtx.equals(NULL)) {
-                    avcodec_close(pCodecCtx);
+                if (!pInputCodecCtx.equals(NULL)) {
+                    avcodec_close(pInputCodecCtx);
                 }
 
-                if (!pSwsContext.equals(NULL)) {
-                    sws_freeContext(pSwsContext);
+                if (!pInputSwsContext.equals(NULL)) {
+                    sws_freeContext(pInputSwsContext);
                 }
 
-                if (!pPacket.equals(NULL)) {
-                    av_packet_unref(pPacket);
+                if (!pInputPacket.equals(NULL)) {
+                    av_packet_unref(pInputPacket);
                 }
 
-                if (!pYUVFrame.equals(NULL)) {
-                    av_free(pYUVFrame);
+                if (!pInputYUVFrame.equals(NULL)) {
+                    av_free(pInputYUVFrame);
                 }
 
-                if (!pRGBFrame.equals(NULL)) {
-                    av_free(pRGBFrame);
+                if (!pInputRGBFrame.equals(NULL)) {
+                    av_free(pInputRGBFrame);
                 }
 
-                if (!ppFormatCtx.equals(NULL)) {
-                    avformat_close_input(ppFormatCtx);
+                if (!ppInputFormatCtx.equals(NULL)) {
+                    avformat_close_input(ppInputFormatCtx);
                 }
             }
         }
@@ -280,27 +280,27 @@ class FFmpeg4JavaTest {
         int frameCount = 0;
 
         try (var arena = Arena.ofConfined()) {
-            var ppAVIOCtx = NULL;
-            var pFormatCtx = NULL;
+            var ppOutputAVIOCtx = NULL;
+            var pOutputFormatCtx = NULL;
             var pOutputFormat = NULL;
-            var pCodecCtx = NULL;
-            var pRGBFrame = NULL;
-            var pYUVFrame = NULL;
-            var pSwsContext = NULL;
-            var pRGBBuffer = NULL;
-            var pYUVBuffer = NULL;
-            var pProperties = NULL;
+            var pOutputCodecCtx = NULL;
+            var pOutputRGBFrame = NULL;
+            var pOutputYUVFrame = NULL;
+            var pOutputSwsContext = NULL;
+            var pOutputRGBBuffer = NULL;
+            var pOutputYUVBuffer = NULL;
+            var pOutputProperties = NULL;
 
             try {
-                pFormatCtx = avformat_alloc_context();
+                pOutputFormatCtx = avformat_alloc_context();
 
-                if (pFormatCtx.equals(NULL)) {
+                if (pOutputFormatCtx.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate format context"));
                 }
 
-                var outputFileName = arena.allocateFrom(fileName);
+                final var pOutputFileName = arena.allocateFrom(fileName);
 
-                pOutputFormat = av_guess_format(NULL, outputFileName, NULL);
+                pOutputFormat = av_guess_format(NULL, pOutputFileName, NULL);
 
                 if (pOutputFormat.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate output format"));
@@ -310,200 +310,200 @@ class FFmpeg4JavaTest {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't find codec"));
                 }
 
-                var pTimeBase = arena.allocate(AVRational.layout());
-                AVRational.num(pTimeBase, 1);
-                AVRational.den(pTimeBase, fps);
+                AVFormatContext.oformat(pOutputFormatCtx, pOutputFormat);
 
-                AVFormatContext.oformat(pFormatCtx, pOutputFormat);
+                final var pOutputCodec = avcodec_find_encoder(AVOutputFormat.video_codec(pOutputFormat));
 
-                var pCodec = avcodec_find_encoder(AVOutputFormat.video_codec(pOutputFormat));
-
-                if (pCodec.equals(NULL)) {
+                if (pOutputCodec.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't find codec"));
                 }
 
-                pCodecCtx = avcodec_alloc_context3(pCodec);
+                pOutputCodecCtx = avcodec_alloc_context3(pOutputCodec);
 
-                if (pCodecCtx.equals(NULL)) {
+                if (pOutputCodecCtx.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate codec context"));
                 }
 
-                AVCodecContext.codec_id(pCodecCtx, AVOutputFormat.video_codec(pOutputFormat));
-                AVCodecContext.codec_type(pCodecCtx, AVMEDIA_TYPE_VIDEO());
-                AVCodecContext.width(pCodecCtx, frameWidth);
-                AVCodecContext.height(pCodecCtx, frameHeight);
-                AVCodecContext.pix_fmt(pCodecCtx, AV_PIX_FMT_YUV420P());
-                AVCodecContext.time_base(pCodecCtx, pTimeBase);
-                AVCodecContext.gop_size(pCodecCtx, 4);
-                AVCodecContext.bit_rate(pCodecCtx, 4096);
-                AVCodecContext.max_b_frames(pCodecCtx, 2);
+                final var pTimeBase = arena.allocate(AVRational.layout());
+                AVRational.num(pTimeBase, 1);
+                AVRational.den(pTimeBase, fps);
 
-                final var pStream = avformat_new_stream(pFormatCtx, pCodec);
+                AVCodecContext.codec_id(pOutputCodecCtx, AVOutputFormat.video_codec(pOutputFormat));
+                AVCodecContext.codec_type(pOutputCodecCtx, AVMEDIA_TYPE_VIDEO());
+                AVCodecContext.width(pOutputCodecCtx, frameWidth);
+                AVCodecContext.height(pOutputCodecCtx, frameHeight);
+                AVCodecContext.pix_fmt(pOutputCodecCtx, AV_PIX_FMT_YUV420P());
+                AVCodecContext.time_base(pOutputCodecCtx, pTimeBase);
+                AVCodecContext.gop_size(pOutputCodecCtx, 4);
+                AVCodecContext.bit_rate(pOutputCodecCtx, 4096);
+                AVCodecContext.max_b_frames(pOutputCodecCtx, 2);
 
-                if (pStream.equals(NULL)) {
+                final var pOutputStream = avformat_new_stream(pOutputFormatCtx, pOutputCodec);
+
+                if (pOutputStream.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't create stream"));
                 }
 
-                if (AVFormatContext.nb_streams(pFormatCtx) != 1) {
+                if (AVFormatContext.nb_streams(pOutputFormatCtx) != 1) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Unexpected number of streams"));
                 }
 
-                var pCodecParameters = arena.allocate(AVCodecParameters.layout());
+                final var pOutputCodecParameters = arena.allocate(AVCodecParameters.layout());
 
-                if (pCodecParameters.equals(NULL)) {
+                if (pOutputCodecParameters.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate codec parameters"));
                 }
 
-                if (avcodec_parameters_from_context(pCodecParameters, pCodecCtx) != 0) {
+                if (avcodec_parameters_from_context(pOutputCodecParameters, pOutputCodecCtx) != 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't copy codec parameters"));
                 }
 
-                AVCodecParameters.codec_id(pCodecParameters, AVOutputFormat.video_codec(pOutputFormat));
-                AVCodecParameters.codec_type(pCodecParameters, AVMEDIA_TYPE_VIDEO());
-                AVCodecParameters.width(pCodecParameters, frameWidth);
-                AVCodecParameters.height(pCodecParameters, frameHeight);
-                AVStream.codecpar(pStream, pCodecParameters);
-                AVStream.time_base(pStream, pTimeBase);
+                AVCodecParameters.codec_id(pOutputCodecParameters, AVOutputFormat.video_codec(pOutputFormat));
+                AVCodecParameters.codec_type(pOutputCodecParameters, AVMEDIA_TYPE_VIDEO());
+                AVCodecParameters.width(pOutputCodecParameters, frameWidth);
+                AVCodecParameters.height(pOutputCodecParameters, frameHeight);
+                AVStream.codecpar(pOutputStream, pOutputCodecParameters);
+                AVStream.time_base(pOutputStream, pTimeBase);
 
-                pProperties = av_stream_new_side_data(pStream, AV_PKT_DATA_CPB_PROPERTIES(), AVCPBProperties.sizeof());
-                AVCPBProperties.buffer_size(pProperties, frameWidth * frameHeight * 3L * 2L);
+                pOutputProperties = av_stream_new_side_data(pOutputStream, AV_PKT_DATA_CPB_PROPERTIES(), AVCPBProperties.sizeof());
+                AVCPBProperties.buffer_size(pOutputProperties, frameWidth * frameHeight * 3L * 2L);
 
-                if (avcodec_open2(pCodecCtx, pCodec, NULL) != 0) {
+                if (avcodec_open2(pOutputCodecCtx, pOutputCodec, NULL) != 0) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't open codec"));
                 }
 
-                ppAVIOCtx = arena.allocate(C_POINTER);
+                ppOutputAVIOCtx = arena.allocate(C_POINTER);
 
-                if (avio_open2(ppAVIOCtx, outputFileName, AVIO_FLAG_WRITE(), NULL, NULL) < 0) {
+                if (avio_open2(ppOutputAVIOCtx, pOutputFileName, AVIO_FLAG_WRITE(), NULL, NULL) < 0) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't open file"));
                 }
 
-                final var pAVIOCtx = ppAVIOCtx.get(C_POINTER, 0);
+                final var pOutputAVIOCtx = ppOutputAVIOCtx.get(C_POINTER, 0);
 
-                if (pAVIOCtx.equals(NULL)) {
+                if (pOutputAVIOCtx.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate IO context"));
                 }
 
-                AVFormatContext.pb(pFormatCtx, pAVIOCtx);
+                AVFormatContext.pb(pOutputFormatCtx, pOutputAVIOCtx);
 
-                pSwsContext = sws_getCachedContext(NULL, frameWidth, frameHeight, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, AV_PIX_FMT_YUV420P(), SWS_BILINEAR(), NULL, NULL, NULL);
+                pOutputSwsContext = sws_getCachedContext(NULL, frameWidth, frameHeight, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, AV_PIX_FMT_YUV420P(), SWS_BILINEAR(), NULL, NULL, NULL);
 
-                if (pSwsContext.equals(NULL)) {
+                if (pOutputSwsContext.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate scale context"));
                 }
 
-                pRGBFrame = av_frame_alloc();
-                pYUVFrame = av_frame_alloc();
+                pOutputRGBFrame = av_frame_alloc();
+                pOutputYUVFrame = av_frame_alloc();
 
-                if (pRGBFrame.equals(NULL)) {
+                if (pOutputRGBFrame.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate RGB frame"));
                 }
 
-                if (pYUVFrame.equals(NULL)) {
+                if (pOutputYUVFrame.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate YUV frame"));
                 }
 
-                AVFrame.width(pRGBFrame, frameWidth);
-                AVFrame.height(pRGBFrame, frameHeight);
-                AVFrame.format(pRGBFrame, AV_PIX_FMT_RGB24());
-                AVFrame.width(pYUVFrame, frameWidth);
-                AVFrame.height(pYUVFrame, frameHeight);
-                AVFrame.format(pYUVFrame, AV_PIX_FMT_YUV420P());
+                AVFrame.width(pOutputRGBFrame, frameWidth);
+                AVFrame.height(pOutputRGBFrame, frameHeight);
+                AVFrame.format(pOutputRGBFrame, AV_PIX_FMT_RGB24());
+                AVFrame.width(pOutputYUVFrame, frameWidth);
+                AVFrame.height(pOutputYUVFrame, frameHeight);
+                AVFrame.format(pOutputYUVFrame, AV_PIX_FMT_YUV420P());
 
-                av_image_alloc(AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame), frameWidth, frameHeight, AV_PIX_FMT_RGB24(), 1);
-                av_image_alloc(AVFrame.data(pYUVFrame), AVFrame.linesize(pYUVFrame), frameWidth, frameHeight, AV_PIX_FMT_YUV420P(), 1);
+                av_image_alloc(AVFrame.data(pOutputRGBFrame), AVFrame.linesize(pOutputRGBFrame), frameWidth, frameHeight, AV_PIX_FMT_RGB24(), 1);
+                av_image_alloc(AVFrame.data(pOutputYUVFrame), AVFrame.linesize(pOutputYUVFrame), frameWidth, frameHeight, AV_PIX_FMT_YUV420P(), 1);
 
                 final int rgbByteSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
                 final int yuvByteSize = av_image_get_buffer_size(AV_PIX_FMT_YUV420P(), frameWidth, frameHeight, 1);
 
-                pRGBBuffer = arena.allocate(rgbByteSize);
-                pYUVBuffer = arena.allocate(yuvByteSize);
+                pOutputRGBBuffer = arena.allocate(rgbByteSize);
+                pOutputYUVBuffer = arena.allocate(yuvByteSize);
 
-                if (pRGBBuffer.equals(NULL)) {
+                if (pOutputRGBBuffer.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate RGB buffer"));
                 }
 
-                if (pYUVBuffer.equals(NULL)) {
+                if (pOutputYUVBuffer.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate YUV buffer"));
                 }
 
-                av_image_fill_arrays(AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame), pRGBBuffer, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
-                av_image_fill_arrays(AVFrame.data(pYUVFrame), AVFrame.linesize(pYUVFrame), pYUVBuffer, AV_PIX_FMT_YUV420P(), frameWidth, frameHeight, 1);
+                av_image_fill_arrays(AVFrame.data(pOutputRGBFrame), AVFrame.linesize(pOutputRGBFrame), pOutputRGBBuffer, AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
+                av_image_fill_arrays(AVFrame.data(pOutputYUVFrame), AVFrame.linesize(pOutputYUVFrame), pOutputYUVBuffer, AV_PIX_FMT_YUV420P(), frameWidth, frameHeight, 1);
 
-                final var pPacket = av_packet_alloc();
+                final var pOutputPacket = av_packet_alloc();
 
-                if (pPacket.equals(NULL)) {
+                if (pOutputPacket.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate packet"));
                 }
 
-                AVPacket.stream_index(pPacket, AVStream.index(pStream));
+                AVPacket.stream_index(pOutputPacket, AVStream.index(pOutputStream));
 
                 if (rgbByteSize != 3 * frameWidth * frameHeight) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Unexpected buffer size"));
                 }
 
-                byte[] buffer = new byte[rgbByteSize];
+                final byte[] buffer = new byte[rgbByteSize];
 
-                avformat_write_header(pFormatCtx, NULL);
+                avformat_write_header(pOutputFormatCtx, NULL);
 
                 for (int frame = 0; frame < frames; frame++) {
-                    var pData = AVFrame.data(pRGBFrame);
+                    final var pOutputData = AVFrame.data(pOutputRGBFrame);
                     fillPixels(buffer, frameWidth, frameHeight, ((float) frame / (frames - 1)));
-                    MemorySegment.copy(MemorySegment.ofArray(buffer), 0, pData.get(C_POINTER, 0), 0, rgbByteSize);
+                    MemorySegment.copy(MemorySegment.ofArray(buffer), 0, pOutputData.get(C_POINTER, 0), 0, rgbByteSize);
 
                     consumer.accept(++frameCount, buffer);
 
-                    sws_scale(pSwsContext, AVFrame.data(pRGBFrame), AVFrame.linesize(pRGBFrame), 0, frameHeight, AVFrame.data(pYUVFrame), AVFrame.linesize(pYUVFrame));
+                    sws_scale(pOutputSwsContext, AVFrame.data(pOutputRGBFrame), AVFrame.linesize(pOutputRGBFrame), 0, frameHeight, AVFrame.data(pOutputYUVFrame), AVFrame.linesize(pOutputYUVFrame));
 
-                    if (avcodec_send_frame(pCodecCtx, pYUVFrame) == 0) {
-                        while (avcodec_receive_packet(pCodecCtx, pPacket) == 0) {
-                            av_packet_rescale_ts(pPacket, AVCodecContext.time_base(pCodecCtx), AVStream.time_base(pStream));
-                            av_write_frame(pFormatCtx, pPacket);
+                    if (avcodec_send_frame(pOutputCodecCtx, pOutputYUVFrame) == 0) {
+                        while (avcodec_receive_packet(pOutputCodecCtx, pOutputPacket) == 0) {
+                            av_packet_rescale_ts(pOutputPacket, AVCodecContext.time_base(pOutputCodecCtx), AVStream.time_base(pOutputStream));
+                            av_write_frame(pOutputFormatCtx, pOutputPacket);
                         }
-                        av_write_frame(pFormatCtx, NULL);
+                        av_write_frame(pOutputFormatCtx, NULL);
                     }
                 }
 
-                if (avcodec_send_frame(pCodecCtx, NULL) == 0) {
-                    while (avcodec_receive_packet(pCodecCtx, pPacket) == 0) {
-                        av_packet_rescale_ts(pPacket, AVCodecContext.time_base(pCodecCtx), AVStream.time_base(pStream));
-                        av_write_frame(pFormatCtx, pPacket);
+                if (avcodec_send_frame(pOutputCodecCtx, NULL) == 0) {
+                    while (avcodec_receive_packet(pOutputCodecCtx, pOutputPacket) == 0) {
+                        av_packet_rescale_ts(pOutputPacket, AVCodecContext.time_base(pOutputCodecCtx), AVStream.time_base(pOutputStream));
+                        av_write_frame(pOutputFormatCtx, pOutputPacket);
                     }
-                    av_write_frame(pFormatCtx, NULL);
+                    av_write_frame(pOutputFormatCtx, NULL);
                 }
 
-                av_write_trailer(pFormatCtx);
+                av_write_trailer(pOutputFormatCtx);
             } catch (Exception e) {
-                if (!ppAVIOCtx.equals(NULL)) {
-                    avio_close(ppAVIOCtx);
+                if (!ppOutputAVIOCtx.equals(NULL)) {
+                    avio_close(ppOutputAVIOCtx);
                 }
 
-                if (!pCodecCtx.equals(NULL)) {
-                    avcodec_close(pCodecCtx);
+                if (!pOutputCodecCtx.equals(NULL)) {
+                    avcodec_close(pOutputCodecCtx);
                 }
 
-                if (!pSwsContext.equals(NULL)) {
-                    sws_freeContext(pSwsContext);
+                if (!pOutputSwsContext.equals(NULL)) {
+                    sws_freeContext(pOutputSwsContext);
                 }
 
-                if (!pProperties.equals(NULL)) {
-                    av_free(pProperties);
+                if (!pOutputProperties.equals(NULL)) {
+                    av_free(pOutputProperties);
                 }
 
-                if (!pYUVFrame.equals(NULL)) {
-                    av_free(pYUVFrame);
+                if (!pOutputYUVFrame.equals(NULL)) {
+                    av_free(pOutputYUVFrame);
                 }
 
-                if (!pRGBFrame.equals(NULL)) {
-                    av_free(pRGBFrame);
+                if (!pOutputRGBFrame.equals(NULL)) {
+                    av_free(pOutputRGBFrame);
                 }
 
                 if (!pOutputFormat.equals(NULL)) {
                     av_free(pOutputFormat);
                 }
 
-                if (!pFormatCtx.equals(NULL)) {
-                    avformat_free_context(pFormatCtx);
+                if (!pOutputFormatCtx.equals(NULL)) {
+                    avformat_free_context(pOutputFormatCtx);
                 }
             }
         }
