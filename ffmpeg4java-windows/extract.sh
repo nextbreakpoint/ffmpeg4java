@@ -1,7 +1,7 @@
 #!/bin/sh
 
-FFMPEG_HOME="Z:/Documents/projects/github/ffmpeg4java/ffmpeg4java-windows/native/ffmpeg"
-INCLUDE_PATH="C:/Users/andrea/Documents/cygwin/usr/include"
+FFMPEG_HOME="$(cygpath -w $(pwd)/native/ffmpeg)"
+INCLUDE_PATH="$(cygpath -w $CYGWIN_HOME/usr/include)"
 
 export PATH=$PATH:${JEXTRACT_HOME}/bin
 

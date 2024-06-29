@@ -20,6 +20,12 @@ extract:
 	@echo System = $(system)
 	cd ffmpeg4java-$(system) && ./extract.sh
 
+.PHONY: dump
+dump:
+	test $(system)
+	@echo System = $(system)
+	cd ffmpeg4java-$(system) && ./dump.sh
+
 .PHONY: verify
 verify:
 	test $(system)

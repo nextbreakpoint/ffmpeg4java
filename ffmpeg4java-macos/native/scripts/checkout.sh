@@ -2,14 +2,16 @@
 
 set -e
 
-if [ ! -d "$(pwd)/ffmpeg" ]; then
-  git clone https://git.ffmpeg.org/ffmpeg.git "$(pwd)/ffmpeg"
+FFMPEG_HOME=$(pwd)/ffmpeg
+
+if [ ! -d "$FFMPEG_HOME" ]; then
+  git clone https://git.ffmpeg.org/ffmpeg.git "$FFMPEG_HOME"
 else
-  pushd "$(pwd)/ffmpeg"
+  pushd "$FFMPEG_HOME"
   git fetch
   popd
 fi
 
-pushd "$(pwd)/ffmpeg"
+pushd "$FFMPEG_HOME"
 git checkout af25a4bfd2503caf3ee485b27b99b620302f5718
 popd
