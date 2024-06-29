@@ -271,8 +271,15 @@ Generate the code for Windows (must be executed on Windows):
 
 ## Code examples
 
-A simple example is provided for each supported system. 
-Look at the POM files for details about how to download the native library and execute the code.         
+A simple example is provided for each supported system.
+
+See POM files for details about how to download the native library and execute the code:
+
+    ffmpeg4java-macos-examples/pom.xml
+
+    ffmpeg4java-linux-examples/pom.xml
+
+    ffmpeg4java-windows-examples/pom.xml
 
 
 ## References
