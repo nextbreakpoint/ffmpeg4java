@@ -227,8 +227,24 @@ Compile and package the JARs:
 The artifacts will be created in the target directory of each module:
 
     ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64-x86_64.jar
+
     ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64-x86_64.jar
+
     ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64-x86_64.jar
+
+List the content of the JAR files:
+
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64.jar
+
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64.jar
+
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64.jar
 
 Install the artifacts in your local Maven repository:
 
