@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
+        <version>7.0.1-1.0</version>
+    </parent>
+    <artifactId>com.nextbreakpoint.ffmpeg4java.windows.test</artifactId>
+    <packaging>jar</packaging>
+    <name>FFmpeg4Java Windows Test</name>
+    <description>FFmpeg4Java provides a Java wrapper of FFmpeg library</description>
+    <dependencies>
+        <dependency>
+            <groupId>com.nextbreakpoint</groupId>
+            <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-lib</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.nextbreakpoint</groupId>
+                                    <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
+                                    <classifier>x86_64</classifier>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.dll</includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

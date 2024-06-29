@@ -1,0 +1,37 @@
+diff --git a/libswscale/Makefile b/libswscale/Makefile
+index 757997b401..4c950e6c43 100644
+--- a/libswscale/Makefile
++++ b/libswscale/Makefile
+@@ -9,7 +9,6 @@ OBJS = alphablend.o                                     \
+        hscale.o                                         \
+        hscale_fast_bilinear.o                           \
+        gamma.o                                          \
+-       half2float.o                                     \
+        input.o                                          \
+        options.o                                        \
+        output.o                                         \
+diff --git a/libswscale/half2float.c b/libswscale/half2float.c
+deleted file mode 100644
+index 1b023f96a5..0000000000
+--- a/libswscale/half2float.c
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/*
+- * This file is part of FFmpeg.
+- *
+- * FFmpeg is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * FFmpeg is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with FFmpeg; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-
+-#include "libavutil/half2float.c"

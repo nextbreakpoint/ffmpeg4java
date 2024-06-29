@@ -1,0 +1,5 @@
+FFmpeg4Java is distributed as independent JAR files, one for each supported operating system.
+Each JAR file contains a native library which must be installed in the library path of the Java runtime.
+
+Please note that the native library is statically liked with FFmpeg library under the terms of GNU Lesser General Public License, version 2.1.
+You should have received a copy of the LGPL v2.1 license with FFmpeg4Java. See http://ffmpeg.org for more information about FFmpeg.

@@ -1,13 +1,13 @@
-# FFmpeg4Java 3.1.1-1.1
+# FFmpeg4Java 7.0.1-1.0
 
-FFmpeg4Java provides a JNI wrapper of FFmpeg library version 3.1.1.
+FFmpeg4Java provides a Java wrapper of FFmpeg library version 7.0.1.
 
 
 ## License
 
 FFmpeg4Java is distributed under the terms of BSD 3-Clause License.
 
-    Copyright (c) 2016-2018, Andrea Medeghini
+    Copyright (c) 2016-2024, Andrea Medeghini
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,141 +38,282 @@ FFmpeg4Java is distributed under the terms of BSD 3-Clause License.
 
 ## Notice
 
-FFmpeg4Java depends on FFmpeg library. See http://ffmpeg.org for details.
+FFmpeg4Java is distributed as independent JAR files, one for each supported operating system.
+Each JAR file contains a native library which must be installed in the library path of the Java runtime.
+
+Please note that the native library is statically liked with FFmpeg library under the terms of GNU Lesser General Public License, version 2.1. 
+You should have received a copy of the LGPL v2.1 license with FFmpeg4Java. See http://ffmpeg.org for more information about FFmpeg.
+
+
+## Get binaries 
+
+FFmpeg4Java is available in Maven Central Repository and [GitHub](https://github.com/nextbreakpoint/ffmpeg4java).
+
+If you are using Maven, add one of the following dependencies in your POM:
+
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.macos</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.linux</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
+        <version>7.0.1-1.0</version>
+    </dependency>
+
+Also, add one of the following to download the native library:
+
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>copy-lib</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>unpack</goal>
+                </goals>
+                <configuration>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>com.nextbreakpoint</groupId>
+                            <artifactId>com.nextbreakpoint.ffmpeg4java.macos</artifactId>
+                            <classifier>x86_64</classifier>
+                            <type>jar</type>
+                            <overWrite>true</overWrite>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </artifactItem>
+                    </artifactItems>
+                    <includes>**/*.dylib</includes>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>copy-lib</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>unpack</goal>
+                </goals>
+                <configuration>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>com.nextbreakpoint</groupId>
+                            <artifactId>com.nextbreakpoint.ffmpeg4java.linux</artifactId>
+                            <classifier>x86_64</classifier>
+                            <type>jar</type>
+                            <overWrite>true</overWrite>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </artifactItem>
+                    </artifactItems>
+                    <includes>**/*.so</includes>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
 
-FFmpeg is used under the terms of GNU Lesser General Public License, version 2.1.
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>copy-lib</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>unpack</goal>
+                </goals>
+                <configuration>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>com.nextbreakpoint</groupId>
+                            <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
+                            <classifier>x86_64</classifier>
+                            <type>jar</type>
+                            <overWrite>true</overWrite>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </artifactItem>
+                    </artifactItems>
+                    <includes>**/*.dll</includes>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
 
-    FFmpeg library is statically linked with FFmpeg4Java's JNI library
 
+## Build libraries
 
-## Generate JNI code
+We recommend to use a Mac to build FFmpeg4Java, because you can compile the library for all systems in one place, but that is not strictly required. 
+A Linux system can be used to compile the library for Linux and Windows (via cross compilation), and use a Mac system only to compile the library for MacOS. 
 
-We use docker for generating JNI code.
+We assume you have a Mac, however the same build instructions work for Linux (but only for compiling the library for Linux and Windows).
 
-    Before you continue install docker on your system
+Make sue you have installed Xcode command line tools (only for MacOS), Docker, git, make, maven, and Java 22.
 
-Create base image:
+    We use Docker to simplify the toolchain configuration and ensure to have a consistent environment
 
-    sh create-image-base.sh
+### Build library for MacOS
 
-Create image for generating code:
+Compile and install the library:
 
-    sh create-image-java.sh
+    make -C ffmpeg4java-macos/native build-lib install
 
-Run a container from the image:
+The library will be installed in the resources directory of the module:
 
-    sh run-image-java.sh
+    ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
 
-The Java code will be generated in directory:
+Inspect the symbols exported by the library:
 
-    build/com.nextbreakpoint.ffmpeg4java/src/main/java
+    nm -gU ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
 
-The JNI code will be generated in file:
+Inspect the libraries linked with the library: 
 
-    build/ffmpeg4java_wrap.c
+    otool -L ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
 
+### Build library for Linux
 
-## Build library for MacOS
+Compile and install the library:
 
-Download and install command line tools from Apple Developer Center.
+    make -C ffmpeg4java-linux/native build-lib install
 
-    Generate JNI code before compiling library for MacOS
+The library will be installed in the resources directory of the module:
 
-Execute build script:
+    ffmpeg4java-linux/src/main/resources/libffmpeg4java.so
 
-    sh build-macos.sh
+Inspect the symbols exported by the library:
 
-The native library will be created in directory:
+    objdump -t ffmpeg4java-linux/src/main/resources/libffmpeg4java.so
 
-    build/com.nextbreakpoint.ffmpeg4java/src/main/resources/macos
+Inspect the libraries linked with the library:
 
+    objdump -p ffmpeg4java-linux/src/main/resources/libffmpeg4java.so | grep .so
 
-## Build library for Linux
+### Build library for Windows
 
-We use docker for compiling Linux library.
+Compile and install the library:
 
-    Generate JNI code before compiling library for Linux
+    make -C ffmpeg4java-windows/native build-lib install
 
-Create repository image:
+The library will be installed in the resources directory of the module:
 
-    sh create-image-repo.sh
+    ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll
 
-Create image for building library:
+Inspect the symbols exported by the library:
 
-    sh create-image-linux.sh
+    objdump -t ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll
 
-Run a container from the image:
+Inspect the libraries linked with the library:
 
-    sh run-image-linux.sh
+    objdump -p ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll | grep .dll
 
-The native library will be created in directory:
+## Build Java code
 
-    build/com.nextbreakpoint.ffmpeg4java/src/main/resources/linux
+Compile and package the JARs:
 
+    make clean package
 
-## Build library for Windows (cross-compilation)
+The artifacts will be created in the target directory of each module:
 
-We use docker for cross-compiling Windows library using Mingw-w64.
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64-x86_64.jar
 
-    Generate JNI code before compiling library for Windows
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64-x86_64.jar
 
-Create repository image:
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64.jar
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64-x86_64.jar
 
-    sh create-image-repo.sh
+List the content of the JAR files:
 
-Create image for building library:
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.0-x86_64.jar
 
-    sh create-image-mingw64.sh
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.0-x86_64.jar
 
-Run a container from the image:
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0.jar
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.0-x86_64.jar
 
-    sh run-image-mingw64.sh
+Install the artifacts in your local Maven repository:
 
-The native library will be created in directory:
+    make install
 
-    build/com.nextbreakpoint.ffmpeg4java/src/main/resources/win32
+## Test Java code
 
+Test the MacOS module (must be executed on MacOS):
 
-## Create and install artifacts
+    make verify system=macos
 
-We use Apache Maven to compile and package the artifacts.
+Test the Linux module (must be executed on Linux):
 
-    Generate JNI code and build libraries before creating artifacts
+    make verify system=linux
 
-Create artifacts:
+Test the Windows module (must be executed on Windows):
 
-    sh mvn-package.sh
+    make verify system=windows
 
-The artifacts will be created in directory:
+## Generate Java code (only if you know what you are doing)
 
-    build/com.nextbreakpoint.ffmpeg4java/target
+The Java code of all modules is generated from the FFmpeg header files by jextract.  
 
-Install artifacts:
+Download and install jextract for Java 22 for all target systems (see links below). 
 
-    sh mvn-install.sh
+Edit the source file in the target module updating the path of jextract and java.   
 
-The artifacts will be installed in local maven repository (~/.m2/repository).
+Generate the code for MacOS (must be executed on MacOS):
 
+    eval $(cat ffmpeg4java-macos/source) && make extract system=macos
 
-## Run tests
+Generate the code for Linux (must be executed on Linux):
 
-We use Apache Maven to run the tests.
+    eval $(cat ffmpeg4java-linux/source) && make extract system=linux
 
-    Install artifacts in local repository before running tests
+Generate the code for Windows (must be executed on Windows):
 
-Run tests on MacOS:
+    eval $(cat ffmpeg4java-windows/source) && make extract system=windows
 
-    sh run-tests.sh -Pmacos
 
-Run tests on Linux:
+## Code examples
 
-    sh run-tests.sh -Plinux
+A simple example is provided for each supported system.
 
-Run tests on Windows:
+See POM files for details about how to download the native library and execute the code:
 
-    sh run-tests.sh -Pwin32
+    ffmpeg4java-macos-examples/pom.xml
 
+    ffmpeg4java-linux-examples/pom.xml
 
-## TODO
+    ffmpeg4java-windows-examples/pom.xml
 
-- Add sample application to show how to use the library
+
+## References
+
+Java Foreign Function and Memory API:
+https://openjdk.org/jeps/454
+
+jextract download:
+https://jdk.java.net/jextract/
+
+jextract guide:
+https://github.com/openjdk/jextract/blob/master/doc/GUIDE.md
+
+FFmpeg documentation:
+https://ffmpeg.org/documentation.html
+
+FFmpeg source code:
+https://ffmpeg.org/download.html#get-sources
+
+FFmpeg build notes:
+https://ffmpeg.org/platform.html

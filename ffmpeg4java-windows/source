@@ -1,0 +1,4 @@
+export CYGWIN_HOME="/cygdrive/c/Users/andrea/Documents/cygwin"
+export JAVA_HOME=/cygdrive/c/Users/andrea/Documents/jdk-22.0.1+8
+export JEXTRACT_HOME=/cygdrive/c/Users/andrea/Documents/jextract-22
+export PATH=$PATH:$JAVA_HOME/bin:$JEXTRACT_HOME/bin
