@@ -39,8 +39,8 @@ copy-legal:
 	cp legal/*.txt ffmpeg4java-linux/src/main/resources/META-INF/
 	cp legal/*.txt ffmpeg4java-windows/src/main/resources/META-INF/
 
-.PHONY: copy-dist
-copy-dist: clean package
+.PHONY: dist
+dist:
 	rm -fR dist
 	mkdir -p dist
 	cp ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-*.jar dist
