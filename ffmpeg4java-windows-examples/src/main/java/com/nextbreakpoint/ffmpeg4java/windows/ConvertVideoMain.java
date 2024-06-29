@@ -62,7 +62,7 @@ class ConvertVideoMain {
         final String sourceFileName = args[0];
         final String outputFileName = args[1];
 
-        System.out.println("Converting video to quicktime...");
+        System.out.println("Converting video...");
 
         System.out.println(STR."Source file \{sourceFileName}");
         System.out.println(STR."Output file \{outputFileName}");
