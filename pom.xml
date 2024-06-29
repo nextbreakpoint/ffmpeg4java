@@ -53,6 +53,13 @@
         <module>ffmpeg4java-linux</module>
         <module>ffmpeg4java-windows</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>OSSRH</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     <build>
         <pluginManagement>
             <plugins>
@@ -287,6 +294,48 @@
                 <module>ffmpeg4java-macos-test</module>
                 <module>ffmpeg4java-macos-examples</module>
             </modules>
+        </profile>
+        <profile>
+            <id>ossrh</id>
+            <activation>
+                <property>
+                    <name>channel</name>
+                    <value>ossrh</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
         </profile>
     </profiles>
 </project>

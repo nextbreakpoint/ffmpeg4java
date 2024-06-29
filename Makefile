@@ -46,3 +46,7 @@ copy-dist: clean package
 	cp ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-*.jar dist
 	cp ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-*.jar dist
 	cp ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-*.jar dist
+
+.PHONY: release
+release:
+	mvn -Dchannel=ossrh clean deploy
