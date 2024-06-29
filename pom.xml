@@ -53,13 +53,6 @@
         <module>ffmpeg4java-linux</module>
         <module>ffmpeg4java-windows</module>
     </modules>
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <name>OSSRH</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <build>
         <pluginManagement>
             <plugins>
@@ -331,10 +324,11 @@
                 </plugins>
             </build>
             <distributionManagement>
-                <snapshotRepository>
+                <repository>
                     <id>ossrh</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
+                    <name>OSSRH</name>
+                    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
             </distributionManagement>
         </profile>
     </profiles>
