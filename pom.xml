@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-    <version>7.0.1-1.0</version>
+    <version>7.0.1-1.1</version>
     <packaging>pom</packaging>
     <name>FFmpeg4Java</name>
     <description>FFmpeg4Java provides a Java wrapper of FFmpeg library</description>

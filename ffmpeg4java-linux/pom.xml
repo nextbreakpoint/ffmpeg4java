@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-        <version>7.0.1-1.0</version>
+        <version>7.0.1-1.1</version>
     </parent>
     <artifactId>com.nextbreakpoint.ffmpeg4java.linux</artifactId>
     <packaging>jar</packaging>

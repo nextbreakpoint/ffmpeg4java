@@ -50,3 +50,9 @@ dist:
 .PHONY: release
 release:
 	mvn -Dchannel=ossrh clean deploy
+
+.PHONY: set-version
+set-version:
+	test $(version)
+	mvn versions:set -DnewVersion=$(version)
+	mvn versions:commit
