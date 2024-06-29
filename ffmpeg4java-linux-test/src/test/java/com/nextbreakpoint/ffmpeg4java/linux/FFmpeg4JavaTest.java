@@ -40,6 +40,7 @@ import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.av_write_frame;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.av_write_trailer;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avcodec_find_decoder;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avcodec_find_encoder;
+import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avcodec_parameters_alloc;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avformat_alloc_context;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avformat_close_input;
 import static com.nextbreakpoint.ffmpeg4java.linux.Libffmpeg_1.avformat_find_stream_info;
@@ -112,10 +113,10 @@ class FFmpeg4JavaTest {
         try (var arena = Arena.ofConfined()) {
             var ppInputFormatCtx = NULL;
             var pInputCodecCtx = NULL;
-            var pInputRGBFrame = NULL;
-            var pInputYUVFrame = NULL;
             var pInputSwsContext = NULL;
+            var pInputRGBFrame = NULL;
             var pInputRGBBuffer = NULL;
+            var pInputTMPFrame = NULL;
             var pInputPacket = NULL;
 
             try {
@@ -127,16 +128,16 @@ class FFmpeg4JavaTest {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't open file"));
                 }
 
-                final var pFormatCtx = ppInputFormatCtx.get(C_POINTER, 0);
+                final var pInputFormatCtx = ppInputFormatCtx.get(C_POINTER, 0);
 
-                if (avformat_find_stream_info(pFormatCtx, NULL) != 0) {
+                if (avformat_find_stream_info(pInputFormatCtx, NULL) != 0) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't find stream info"));
                 }
 
-                av_dump_format(pFormatCtx, 0, pInputFileName, 0);
+                av_dump_format(pInputFormatCtx, 0, pInputFileName, 0);
 
-                final int nbStreams = AVFormatContext.nb_streams(pFormatCtx);
-                final var pInputStreams = AVFormatContext.streams(pFormatCtx);
+                final int nbStreams = AVFormatContext.nb_streams(pInputFormatCtx);
+                final var pInputStreams = AVFormatContext.streams(pInputFormatCtx);
 
                 var pInputCodecParameters = NULL;
                 int videoStreamIndex = -1;
@@ -162,7 +163,7 @@ class FFmpeg4JavaTest {
                 }
 
                 if (pInputCodec.equals(NULL)) {
-                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't find codec"));
+                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't find decoder"));
                 }
 
                 pInputCodecCtx = avcodec_alloc_context3(pInputCodec);
@@ -176,7 +177,7 @@ class FFmpeg4JavaTest {
                 }
 
                 if (avcodec_open2(pInputCodecCtx, pInputCodec, NULL) < 0) {
-                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't open codec"));
+                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't open decoder"));
                 }
 
                 final int frameWidth = AVCodecContext.width(pInputCodecCtx);
@@ -190,14 +191,14 @@ class FFmpeg4JavaTest {
                 }
 
                 pInputRGBFrame = av_frame_alloc();
-                pInputYUVFrame = av_frame_alloc();
+                pInputTMPFrame = av_frame_alloc();
 
                 if (pInputRGBFrame.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate RGB frame"));
                 }
 
-                if (pInputYUVFrame.equals(NULL)) {
-                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate YUV frame"));
+                if (pInputTMPFrame.equals(NULL)) {
+                    throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate TMP frame"));
                 }
 
                 final int rgbByteSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24(), frameWidth, frameHeight, 1);
@@ -222,11 +223,11 @@ class FFmpeg4JavaTest {
 
                 final byte[] buffer = new byte[rgbByteSize];
 
-                while (av_read_frame(pFormatCtx, pInputPacket) == 0) {
+                while (av_read_frame(pInputFormatCtx, pInputPacket) == 0) {
                     if (AVPacket.stream_index(pInputPacket) == videoStreamIndex) {
                         if (avcodec_send_packet(pInputCodecCtx, pInputPacket) == 0) {
-                            while (avcodec_receive_frame(pInputCodecCtx, pInputYUVFrame) == 0) {
-                                sws_scale(pInputSwsContext, AVFrame.data(pInputYUVFrame), AVFrame.linesize(pInputYUVFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
+                            while (avcodec_receive_frame(pInputCodecCtx, pInputTMPFrame) == 0) {
+                                sws_scale(pInputSwsContext, AVFrame.data(pInputTMPFrame), AVFrame.linesize(pInputTMPFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
 
                                 final var pInputData = AVFrame.data(pInputRGBFrame);
                                 MemorySegment.copy(pInputData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
@@ -238,8 +239,8 @@ class FFmpeg4JavaTest {
                 }
 
                 if (avcodec_send_packet(pInputCodecCtx, NULL) == 0) {
-                    while (avcodec_receive_frame(pInputCodecCtx, pInputYUVFrame) == 0) {
-                        sws_scale(pInputSwsContext, AVFrame.data(pInputYUVFrame), AVFrame.linesize(pInputYUVFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
+                    while (avcodec_receive_frame(pInputCodecCtx, pInputTMPFrame) == 0) {
+                        sws_scale(pInputSwsContext, AVFrame.data(pInputTMPFrame), AVFrame.linesize(pInputTMPFrame), 0, frameHeight, AVFrame.data(pInputRGBFrame), AVFrame.linesize(pInputRGBFrame));
 
                         final var pInputData = AVFrame.data(pInputRGBFrame);
                         MemorySegment.copy(pInputData.get(C_POINTER, 0), 0, MemorySegment.ofArray(buffer), 0, rgbByteSize);
@@ -247,7 +248,11 @@ class FFmpeg4JavaTest {
                         consumer.accept(++frameCount, buffer);
                     }
                 }
-            } catch (Exception e) {
+            } finally {
+                if (!pInputPacket.equals(NULL)) {
+                    av_packet_unref(pInputPacket);
+                }
+
                 if (!pInputCodecCtx.equals(NULL)) {
                     avcodec_close(pInputCodecCtx);
                 }
@@ -256,12 +261,8 @@ class FFmpeg4JavaTest {
                     sws_freeContext(pInputSwsContext);
                 }
 
-                if (!pInputPacket.equals(NULL)) {
-                    av_packet_unref(pInputPacket);
-                }
-
-                if (!pInputYUVFrame.equals(NULL)) {
-                    av_free(pInputYUVFrame);
+                if (!pInputTMPFrame.equals(NULL)) {
+                    av_free(pInputTMPFrame);
                 }
 
                 if (!pInputRGBFrame.equals(NULL)) {
@@ -280,16 +281,14 @@ class FFmpeg4JavaTest {
         int frameCount = 0;
 
         try (var arena = Arena.ofConfined()) {
-            var ppOutputAVIOCtx = NULL;
             var pOutputFormatCtx = NULL;
-            var pOutputFormat = NULL;
             var pOutputCodecCtx = NULL;
+            var pOutputAVIOCtx = NULL;
+            var pOutputSwsContext = NULL;
             var pOutputRGBFrame = NULL;
             var pOutputYUVFrame = NULL;
-            var pOutputSwsContext = NULL;
             var pOutputRGBBuffer = NULL;
             var pOutputYUVBuffer = NULL;
-            var pOutputProperties = NULL;
 
             try {
                 pOutputFormatCtx = avformat_alloc_context();
@@ -300,22 +299,24 @@ class FFmpeg4JavaTest {
 
                 final var pOutputFileName = arena.allocateFrom(fileName);
 
-                pOutputFormat = av_guess_format(NULL, pOutputFileName, NULL);
+                final var pOutputFormat = av_guess_format(NULL, pOutputFileName, NULL);
 
                 if (pOutputFormat.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate output format"));
                 }
 
-                if (AVOutputFormat.video_codec(pOutputFormat) == AV_CODEC_ID_NONE()) {
-                    throw new RuntimeException(formatSaveVideoError(fileName, "Can't find codec"));
+                final int outputVideoCodec = AVOutputFormat.video_codec(pOutputFormat);
+
+                if (outputVideoCodec == AV_CODEC_ID_NONE()) {
+                    throw new RuntimeException(formatSaveVideoError(fileName, "Video codec not found"));
                 }
 
                 AVFormatContext.oformat(pOutputFormatCtx, pOutputFormat);
 
-                final var pOutputCodec = avcodec_find_encoder(AVOutputFormat.video_codec(pOutputFormat));
+                final var pOutputCodec = avcodec_find_encoder(outputVideoCodec);
 
                 if (pOutputCodec.equals(NULL)) {
-                    throw new RuntimeException(formatSaveVideoError(fileName, "Can't find codec"));
+                    throw new RuntimeException(formatSaveVideoError(fileName, "Can't find encoder"));
                 }
 
                 pOutputCodecCtx = avcodec_alloc_context3(pOutputCodec);
@@ -328,7 +329,7 @@ class FFmpeg4JavaTest {
                 AVRational.num(pTimeBase, 1);
                 AVRational.den(pTimeBase, fps);
 
-                AVCodecContext.codec_id(pOutputCodecCtx, AVOutputFormat.video_codec(pOutputFormat));
+                AVCodecContext.codec_id(pOutputCodecCtx, outputVideoCodec);
                 AVCodecContext.codec_type(pOutputCodecCtx, AVMEDIA_TYPE_VIDEO());
                 AVCodecContext.width(pOutputCodecCtx, frameWidth);
                 AVCodecContext.height(pOutputCodecCtx, frameHeight);
@@ -348,7 +349,7 @@ class FFmpeg4JavaTest {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Unexpected number of streams"));
                 }
 
-                final var pOutputCodecParameters = arena.allocate(AVCodecParameters.layout());
+                final var pOutputCodecParameters = avcodec_parameters_alloc();
 
                 if (pOutputCodecParameters.equals(NULL)) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't allocate codec parameters"));
@@ -358,27 +359,27 @@ class FFmpeg4JavaTest {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't copy codec parameters"));
                 }
 
-                AVCodecParameters.codec_id(pOutputCodecParameters, AVOutputFormat.video_codec(pOutputFormat));
+                AVCodecParameters.codec_id(pOutputCodecParameters, outputVideoCodec);
                 AVCodecParameters.codec_type(pOutputCodecParameters, AVMEDIA_TYPE_VIDEO());
                 AVCodecParameters.width(pOutputCodecParameters, frameWidth);
                 AVCodecParameters.height(pOutputCodecParameters, frameHeight);
                 AVStream.codecpar(pOutputStream, pOutputCodecParameters);
                 AVStream.time_base(pOutputStream, pTimeBase);
 
-                pOutputProperties = av_stream_new_side_data(pOutputStream, AV_PKT_DATA_CPB_PROPERTIES(), AVCPBProperties.sizeof());
+                final var pOutputProperties = av_stream_new_side_data(pOutputStream, AV_PKT_DATA_CPB_PROPERTIES(), AVCPBProperties.sizeof());
                 AVCPBProperties.buffer_size(pOutputProperties, frameWidth * frameHeight * 3L * 2L);
 
                 if (avcodec_open2(pOutputCodecCtx, pOutputCodec, NULL) != 0) {
-                    throw new RuntimeException(formatSaveVideoError(fileName, "Can't open codec"));
+                    throw new RuntimeException(formatSaveVideoError(fileName, "Can't open encoder"));
                 }
 
-                ppOutputAVIOCtx = arena.allocate(C_POINTER);
+                final var ppOutputAVIOCtx = arena.allocate(C_POINTER);
 
                 if (avio_open2(ppOutputAVIOCtx, pOutputFileName, AVIO_FLAG_WRITE(), NULL, NULL) < 0) {
                     throw new RuntimeException(formatSaveVideoError(fileName, "Can't open file"));
                 }
 
-                final var pOutputAVIOCtx = ppOutputAVIOCtx.get(C_POINTER, 0);
+                pOutputAVIOCtx = ppOutputAVIOCtx.get(C_POINTER, 0);
 
                 if (pOutputAVIOCtx.equals(NULL)) {
                     throw new RuntimeException(formatLoadVideoError(fileName, "Can't allocate IO context"));
@@ -473,9 +474,9 @@ class FFmpeg4JavaTest {
                 }
 
                 av_write_trailer(pOutputFormatCtx);
-            } catch (Exception e) {
-                if (!ppOutputAVIOCtx.equals(NULL)) {
-                    avio_close(ppOutputAVIOCtx);
+            } finally {
+                if (!pOutputAVIOCtx.equals(NULL)) {
+                    avio_close(pOutputAVIOCtx);
                 }
 
                 if (!pOutputCodecCtx.equals(NULL)) {
@@ -486,20 +487,12 @@ class FFmpeg4JavaTest {
                     sws_freeContext(pOutputSwsContext);
                 }
 
-                if (!pOutputProperties.equals(NULL)) {
-                    av_free(pOutputProperties);
-                }
-
                 if (!pOutputYUVFrame.equals(NULL)) {
                     av_free(pOutputYUVFrame);
                 }
 
                 if (!pOutputRGBFrame.equals(NULL)) {
                     av_free(pOutputRGBFrame);
-                }
-
-                if (!pOutputFormat.equals(NULL)) {
-                    av_free(pOutputFormat);
                 }
 
                 if (!pOutputFormatCtx.equals(NULL)) {

@@ -21,6 +21,6 @@
 /ffmpeg4java-windows/src/main/resources/ffmpeg4java.dll
 /ffmpeg4java-linux/src/main/resources/libffmpeg4java.so
 /ffmpeg4java-macos/src/main/resources/libffmpeg4java.dylib
-/ffmpeg4java-macos-examples/output.mov
-/ffmpeg4java-linux-examples/output.mov
-/ffmpeg4java-windows-examples/output.mov
+/ffmpeg4java-macos-examples/output.mp4
+/ffmpeg4java-linux-examples/output.mp4
+/ffmpeg4java-windows-examples/output.mp4

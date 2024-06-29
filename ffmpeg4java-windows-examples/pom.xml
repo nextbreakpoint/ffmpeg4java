@@ -65,7 +65,7 @@
                                 <argument>-Djava.library.path=${project.build.directory}/lib</argument>
                                 <argument>com.nextbreakpoint.ffmpeg4java.windows.ConvertVideoMain</argument>
                                 <argument>sample.mpg</argument>
-                                <argument>output.mov</argument>
+                                <argument>output.mp4</argument>
                             </arguments>
                         </configuration>
                     </execution>
