@@ -40,13 +40,15 @@
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
         <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
-        <maven-dependency-plugin.version>3.7.0</maven-dependency-plugin.version>
+        <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
         <maven-jar-plugin.version>3.4.1</maven-jar-plugin.version>
         <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
         <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
+        <github-release-plugin.version>1.6.0</github-release-plugin.version>
         <maven.version>3.6</maven.version>
+        <github.draft>true</github.draft>
     </properties>
     <modules>
         <module>ffmpeg4java-macos</module>
@@ -105,6 +107,15 @@
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>${nexus-staging-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>de.jutzig</groupId>
+                    <artifactId>github-release-plugin</artifactId>
+                    <version>${github-release-plugin.version}</version>
+                    <configuration>
+                        <releaseName>${project.name} ${project.version}</releaseName>
+                        <tag>v${project.version}</tag>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -330,6 +341,40 @@
                     <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
+        </profile>
+        <profile>
+            <id>github</id>
+            <activation>
+                <property>
+                    <name>channel</name>
+                    <value>github</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>de.jutzig</groupId>
+                        <artifactId>github-release-plugin</artifactId>
+                        <configuration>
+                            <releaseName>FFmpeg4Java ${project.version}</releaseName>
+                            <tag>v${project.version}</tag>
+                            <failOnExistingRelease>false</failOnExistingRelease>
+                            <overwriteArtifact>false</overwriteArtifact>
+                            <draft>${github.draft}</draft>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.basedir}</directory>
+                                    <includes>
+                                        <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
+                                        <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
+                                        <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

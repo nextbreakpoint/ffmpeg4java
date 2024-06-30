@@ -47,8 +47,13 @@ dist:
 	cp ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-*.jar dist
 	cp ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-*.jar dist
 
-.PHONY: release
-release:
+
+.PHONY: github-release
+github-release:
+	mvn -Dchannel=github clean package de.jutzig:github-release-plugin:release -Dgithub.draft=true
+
+.PHONY: maven-release
+maven-release:
 	mvn -Dchannel=ossrh clean deploy
 
 .PHONY: set-version
