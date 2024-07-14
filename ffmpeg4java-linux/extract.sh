@@ -6,7 +6,7 @@ export PATH=$PATH:${JEXTRACT_HOME}/bin
 
 jextract @includes.txt \
   --output src/main/java \
-  --target-package com.nextbreakpoint.ffmpeg4java.linux \
+  --target-package com.nextbreakpoint.ffmpeg4java \
   --include-dir "${FFMPEG_HOME}" \
   --use-system-load-library \
   --library ffmpeg4java \

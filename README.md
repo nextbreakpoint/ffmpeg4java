@@ -1,6 +1,9 @@
-# FFmpeg4Java 7.0.1-1.1
+# FFmpeg4Java 7.0.1-1.2
 
 FFmpeg4Java provides a Java wrapper of FFmpeg library version 7.0.1.
+
+Please note that starting from version 7.0.1-1.0 the wrapper requires Java 22 and the Java FFM API (which is still in preview). 
+Older versions of the wrapper still work with Java 11 or later, but they use JNI with an old version of FFmpeg.     
 
 
 ## License
@@ -54,19 +57,19 @@ If you are using Maven, add one of the following dependencies in your POM:
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.ffmpeg4java.macos</artifactId>
-        <version>7.0.1-1.1</version>
+        <version>7.0.1-1.2</version>
     </dependency>
     
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.ffmpeg4java.linux</artifactId>
-        <version>7.0.1-1.1</version>
+        <version>7.0.1-1.2</version>
     </dependency>
     
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.ffmpeg4java.windows</artifactId>
-        <version>7.0.1-1.1</version>
+        <version>7.0.1-1.2</version>
     </dependency>
 
 Also, add one of the following to download the native library:
@@ -226,25 +229,25 @@ Compile and package the JARs:
 
 The artifacts will be created in the target directory of each module:
 
-    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.1-x86_64.jar
-    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.1-x86_64-x86_64.jar
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.2-x86_64.jar
+    ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.2-x86_64-x86_64.jar
 
-    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.1-x86_64.jar
-    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.1-x86_64-x86_64.jar
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.2-x86_64.jar
+    ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.2-x86_64-x86_64.jar
 
-    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.1-x86_64.jar
-    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.1-x86_64-x86_64.jar
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.2-x86_64.jar
+    ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.2-x86_64-x86_64.jar
 
 List the content of the JAR files:
 
-    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.1.jar
-    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.1-x86_64.jar
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.2.jar
+    unzip -t ffmpeg4java-macos/target/com.nextbreakpoint.ffmpeg4java.macos-7.0.1-1.2-x86_64.jar
 
-    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.1.jar
-    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.1-x86_64.jar
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.2.jar
+    unzip -t ffmpeg4java-linux/target/com.nextbreakpoint.ffmpeg4java.linux-7.0.1-1.2-x86_64.jar
 
-    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.1.jar
-    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.1-x86_64.jar
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.2.jar
+    unzip -t ffmpeg4java-windows/target/com.nextbreakpoint.ffmpeg4java.windows-7.0.1-1.2-x86_64.jar
 
 Install the artifacts in your local Maven repository:
 
@@ -287,15 +290,11 @@ Generate the code for Windows (must be executed on Windows):
 
 ## Code examples
 
-A simple example is provided for each supported system.
+A simple example is provided for the module ffmpeg4Java-examples.
 
-See POM files for details about how to download the native library and execute the code:
+See the POM file for details about how to download the native library and execute the example:
 
-    ffmpeg4java-macos-examples/pom.xml
-
-    ffmpeg4java-linux-examples/pom.xml
-
-    ffmpeg4java-windows-examples/pom.xml
+    ffmpeg4java-examples/pom.xml
 
 
 ## References
