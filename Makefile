@@ -30,8 +30,8 @@ dump:
 verify:
 	test $(system)
 	@echo System = $(system)
-	#MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=false -Xlog:library" mvn verify -P$(system)
-	MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-$(system)-test/target/lib -Djextract.trace.downcalls=false $(properties)" mvn verify -P$(system)
+	#MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-tests/target/lib -Djextract.trace.downcalls=false -Xlog:library" mvn verify -P$(system)
+	MAVEN_OPTS="--enable-preview --enable-native-access=ALL-UNNAMED -Djava.library.path=ffmpeg4java-tests/target/lib -Djextract.trace.downcalls=false $(properties)" mvn verify -P$(system)
 
 .PHONY: copy-legal
 copy-legal:

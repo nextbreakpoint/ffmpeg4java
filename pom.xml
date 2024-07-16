@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.ffmpeg4java</artifactId>
-    <version>7.0.1-1.1</version>
+    <version>7.0.1-1.2</version>
     <packaging>pom</packaging>
     <name>FFmpeg4Java</name>
     <description>FFmpeg4Java provides a Java wrapper of FFmpeg library</description>
@@ -273,8 +273,8 @@
                 <os.type>windows</os.type>
             </properties>
             <modules>
-                <module>ffmpeg4java-windows-test</module>
-                <module>ffmpeg4java-windows-examples</module>
+                <module>ffmpeg4java-tests</module>
+                <module>ffmpeg4java-examples</module>
             </modules>
         </profile>
         <profile>
@@ -284,8 +284,8 @@
                 <os.type>linux</os.type>
             </properties>
             <modules>
-                <module>ffmpeg4java-linux-test</module>
-                <module>ffmpeg4java-linux-examples</module>
+                <module>ffmpeg4java-tests</module>
+                <module>ffmpeg4java-examples</module>
             </modules>
         </profile>
         <profile>
@@ -295,8 +295,8 @@
                 <os.type>macos</os.type>
             </properties>
             <modules>
-                <module>ffmpeg4java-macos-test</module>
-                <module>ffmpeg4java-macos-examples</module>
+                <module>ffmpeg4java-tests</module>
+                <module>ffmpeg4java-examples</module>
             </modules>
         </profile>
         <profile>
@@ -365,8 +365,6 @@
                                 <fileSet>
                                     <directory>${project.basedir}</directory>
                                     <includes>
-                                        <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
-                                        <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
                                         <include>**/target/${project.artifactId}-${project.version}-x86_64.jar</include>
                                     </includes>
                                 </fileSet>
